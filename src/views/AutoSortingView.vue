@@ -48,9 +48,8 @@
   </Card>
 
   <!-- Dashboard -->
-  <template v-if="formattedData.length && genres.length && filteredGenres.length">
     <!-- Statistics -->
-    <div class="row">
+    <div class="row" v-if="me && 'display_name' in me">
       <h1 class="text-white mb-4">{{ me?.display_name }}'s dashboard</h1>
       <div class="container">
         <div class="row">
@@ -59,8 +58,8 @@
               {{ formattedData.length }}
             </Card>
           </div>
-          <div class="col">
-            <Card title="Number of playlists" icon-name="library-outline">
+          <div class="col" v-if="genres.length">
+            <Card title="Number of playlists" icon-name="library-outline" v-if="genres.length">
               {{ genres.length }}
             </Card>
           </div>
@@ -69,11 +68,11 @@
     </div>
 
     <!-- Liked tracks card -->
-    <div class="row">
+    <div class="row" v-if="formattedData.length && genres.length && filteredGenres.length">
       <div class="col" v-if="showLikedTracks">
         <Card title="Liked tracks">
           <div class="about">
-            <ul class="list-group list-group-flush list-group-numbered  text-white" v-if="formattedData && formattedData.length">
+            <ul class="list-group list-group-flush list-group-numbered  text-white">
               <template v-for="track in formattedData">
                 <li class="list-group-item text-white" style="background: transparent"><span class="bold">
             {{ track.song }}</span>
@@ -87,7 +86,7 @@
     </div>
 
     <!-- Filtered genres card -->
-    <Card title="Filtered genres">
+    <Card title="Filtered genres" v-if="genresToAddInPlaylist.length">
       <table class="table text-white table-borderless">
         <thead>
         <tr>
@@ -109,7 +108,7 @@
     </Card>
 
     <!-- Playlists found -->
-    <Card title="Founded playlists">
+    <Card title="Founded playlists" v-if="formattedData.length && genres.length && filteredGenres.length">
       <table class="table table-borderless text-white">
         <thead>
         <tr>
@@ -138,7 +137,6 @@
         </tbody>
       </table>
     </Card>
-  </template>
 </template>
 
 <script>
@@ -479,7 +477,12 @@ export default {
         });
       });
       this.genres = sortByGenre;
-      this.pushInfo(`Your playlists with valid description has been successfully retrieved, ${this.genres.length} found !`);
+      if (this.genres.length > 0) {
+        this.pushInfo(`Your playlists with valid description has been successfully retrieved, ${this.genres.length} found !`);
+      } else {
+        console.log(this.genresToAddInPlaylist)
+        this.pushInfo(`No playlists found. Try to add your your first playlist by adding [${this.genresToAddInPlaylist[0].genre}] for example`);
+      }
       let counter = 0;
       const doneMessage = () => {
         counter += 1;
