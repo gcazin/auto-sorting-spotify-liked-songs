@@ -1,99 +1,116 @@
 <template>
   <div class="mb-4">
     <template v-if="formattedData && formattedData.length > 0">
-      <p class="fs-5 mt-4">If you want to sort your liked music again, you can click this button again to start the process.</p>
+      <Card>
+        <p class="fs-5">If you want to sort your liked music again, you can click this button again to start the process.</p>
+      </Card>
       <Login text="Refresh data" />
     </template>
     <template v-else>
-      <p class="fs-5 mt-4">Ready to be done with manual sorting? Click on the button below to start automatic sorting !</p>
-      <div class="mb-3 form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="randomizeTracks" :checked="randomizeTracks" :disabled="loading">
-        <label class="form-check-label" for="flexSwitchCheckChecked">Randomize tracks?</label>
-      </div>
-      <div class="mb-3 form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="performSubmittingData" :checked="performSubmittingData" :disabled="loading">
-        <label class="form-check-label" for="flexSwitchCheckChecked">Submitting data?</label>
-      </div>
+      <Card>
+        <p class="fs-5">Ready to be done with manual sorting? Click on the button below to start automatic sorting !</p>
+        <div class="mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="randomizeTracks" :checked="randomizeTracks" :disabled="loading">
+          <label class="form-check-label" for="flexSwitchCheckChecked">Randomize tracks?</label>
+        </div>
+        <div class="mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="performSubmittingData" :checked="performSubmittingData" :disabled="loading">
+          <label class="form-check-label" for="flexSwitchCheckChecked">Submitting data?</label>
+        </div>
+      </Card>
       <div class="text-center">
-        <button class="btn btn-success btn-lg mt-4" @click="autoSortingLikedTracks" :disabled="loading">
+        <button class="btn btn-success btn-lg" @click="autoSortingLikedTracks" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Auto sorting
         </button>
       </div>
     </template>
   </div>
-  <hr>
-  <h4>Instructions</h4>
-  <p>- Create a playlist with the name you want.</p>
-  <p>
-    - Put in description the music genres of the playlist (separated by a comma, ex: french hip hop, calm rap).
-    You can retrieve the genres that appear most often in your playlists by submitting the form and unchecking the 'Submitting data',
-    nothing will be added or modified in your playlists.
-  </p>
-  <p>- Click on the auto sorting button and tada!</p>
 
-  <hr>
-  <div class="row">
-    <h1 class="mb-4" v-if="me && !('error' in me)">{{ me?.display_name }}'s dashboard</h1>
-    <form v-if="formattedData && formattedData.length > 0">
-      <div class="mb-3 form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showGenres" :checked="showGenres" :disabled="loading">
-        <label class="form-check-label" for="flexSwitchCheckChecked">Show styles retrieved</label>
-      </div>
-      <div class="mb-3 form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showLikedTracks" :checked="showLikedTracks" :disabled="loading">
-        <label class="form-check-label" for="flexSwitchCheckChecked">Show liked tracks</label>
-      </div>
-      <div class="mb-3 form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showDebug" :checked="showDebug" :disabled="loading">
-        <label class="form-check-label" for="flexSwitchCheckChecked">Show debug information's</label>
-      </div>
-    </form>
-  </div>
-  <div class="row">
-    <div class="col text-white" v-show="showDebug">
-      <div class="mb-4" v-if="infos.length > 0">
-        <p v-html="info" v-for="info in infos">
-        </p>
+  <!-- Options card -->
+  <Card title="Options" v-if="infos.length > 0">
+    <div class="form-check form-switch form-check-inline">
+      <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showGenres" :checked="showGenres" :disabled="loading">
+      <label class="form-check-label" for="flexSwitchCheckChecked">Show styles retrieved</label>
+    </div>
+    <div class="form-check form-switch form-check-inline">
+      <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showLikedTracks" :checked="showLikedTracks" :disabled="loading">
+      <label class="form-check-label" for="flexSwitchCheckChecked">Show liked tracks</label>
+    </div>
+    <div class="form-check form-switch form-check-inline">
+      <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showDebug" :checked="showDebug" :disabled="loading">
+      <label class="form-check-label" for="flexSwitchCheckChecked">Show debug information's</label>
+    </div>
+  </Card>
+
+  <!-- Debug information card -->
+  <Card v-if="showDebug && infos.length > 0">
+    <p class="text-white" v-html="info" v-for="info in infos"></p>
+  </Card>
+
+  <!-- Dashboard -->
+  <template v-if="formattedData.length && genres.length && filteredGenres.length">
+    <!-- Statistics -->
+    <div class="row">
+      <h1 class="text-white mb-4">{{ me?.display_name }}'s dashboard</h1>
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <Card title="Number of tracks">
+              {{ formattedData.length }}
+            </Card>
+          </div>
+          <div class="col">
+            <Card title="Number of playlists">
+              {{ genres.length }}
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="col text-white" v-if="showLikedTracks">
-      <div class="about">
-        <ul class="list-group list-group-flush list-group-numbered  text-white" v-if="formattedData && formattedData.length">
-          <template v-for="track in formattedData">
-            <li class="list-group-item text-white" style="background: transparent"><span class="bold">
+
+    <!-- Liked tracks card -->
+    <div class="row">
+      <div class="col" v-if="showLikedTracks">
+        <Card title="Liked tracks">
+          <div class="about">
+            <ul class="list-group list-group-flush list-group-numbered  text-white" v-if="formattedData && formattedData.length">
+              <template v-for="track in formattedData">
+                <li class="list-group-item text-white" style="background: transparent"><span class="bold">
             {{ track.song }}</span>
-              de <span class="bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
-              (<span class="bold">{{ track.genres.join(',') }}</span>)</li>
-          </template>
-        </ul>
+                  de <span class="bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
+                  (<span class="bold">{{ track.genres.join(',') }}</span>)</li>
+              </template>
+            </ul>
+          </div>
+        </Card>
       </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <div v-if="filteredGenres && filteredGenres.length > 0">
-        <table class="table table-dark" v-if="filteredGenres.length > 0">
-          <thead>
-          <tr>
-            <th scope="col">Description to put in your playlist</th>
-            <th scope="col">Number of items</th>
-            <th scope="col">Add to your playlist</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="genre in genresToAddInPlaylist">
-            <td>[{{genre.genre}}]</td>
-            <td>{{ genre.tracks.length }}</td>
-            <td>
-              <button @click="createUserPlaylist(genre.genre, genre.genres)" class="btn btn-outline-success fw-bold btn-sm">Add to spotify</button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="col text-white" v-if="showGenres">
-      <table class="table table-dark" v-if="genres.length > 0">
+
+    <!-- Filtered genres card -->
+    <Card title="Filtered genres">
+      <table class="table text-white table-borderless">
+        <thead>
+        <tr>
+          <th scope="col">Description to put in your playlist</th>
+          <th scope="row">Number of items</th>
+          <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="genre in genresToAddInPlaylist">
+          <td>[{{genre.genre}}]</td>
+          <td>{{ genre.tracks.length }}</td>
+          <td>
+            <button @click="createUserPlaylist(genre.genre, genre.genres)" class="btn btn-outline-success fw-bold btn-sm">Add to spotify</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </Card>
+
+    <!-- Playlists found -->
+    <Card title="Founded playlists">
+      <table class="table table-borderless text-white">
         <thead>
         <tr>
           <th scope="col">Playlist name</th>
@@ -109,16 +126,17 @@
         </tr>
         </tbody>
       </table>
-    </div>
-  </div>
+    </Card>
+  </template>
 </template>
 
 <script>
 import Login from '@/components/Login.vue';
+import Card from "@/components/Card.vue";
 
 export default {
   name: 'AutoSortingView',
-  components: { Login },
+  components: {Card, Login },
   data() {
     return {
       me: null,
@@ -136,7 +154,7 @@ export default {
       numberOfItems: 50,
       showGenres: true,
       showLikedTracks: false,
-      showDebug: false,
+      showDebug: true,
       performSubmittingData: true,
       randomizeTracks: false,
     };
@@ -265,16 +283,18 @@ export default {
             } else {
               artistData = artists.find((a) => a.id === artist.id).data;
             }
-            this.formattedData.push({
-              id: likedTrack.track.id,
-              song: likedTrack.track.name,
-              uri: likedTrack.track.uri,
-              genres: artistData.genres,
-              artist: likedTrack.track.artists.map((artist) => ({
-                name: artist.name,
-                id: artist.id,
-              })).flat(),
-            });
+            if (this.formattedData.findIndex((fd) => fd.id === likedTrack.track.id) === -1) {
+              this.formattedData.push({
+                id: likedTrack.track.id,
+                song: likedTrack.track.name,
+                uri: likedTrack.track.uri,
+                genres: artistData.genres,
+                artist: likedTrack.track.artists.map((artist) => ({
+                  name: artist.name,
+                  id: artist.id,
+                })).flat(),
+              });
+            }
           }
         }
 
@@ -310,7 +330,7 @@ export default {
             // Get user liked tracks
             this.getLikedTracks().then((likedTracks) => {
               this.likedTracks = likedTracks;
-              this.pushInfo('Your liked tracks has been successfully retrieved!');
+              this.pushInfo(`Your liked tracks has been successfully retrieved, ${this.likedTracks.length} found !`);
               this.pushInfo('Get styles of your liked tracks...');
 
               // Get user liked tracks style
@@ -397,8 +417,6 @@ export default {
         .sort((a, b) => b.tracks.length - a.tracks.length)
         .slice(0, 10);
 
-      console.log('test', this.genresToAddInPlaylist);
-
       let filteredGenres = [];
       const userPlaylists = this.userPlaylists.map((userPlaylist) => ({
         id: userPlaylist.id,
@@ -448,8 +466,7 @@ export default {
         });
       });
       this.genres = sortByGenre;
-      console.log(this.genres);
-      this.pushInfo('Your tracks styles has been successfully retrieved!');
+      this.pushInfo(`Your playlists with valid description has been successfully retrieved, ${this.genres.length} found !`);
       this.userPlaylists.forEach((userPlaylist) => {
         const tracks = sortByGenre.find((sort) => sort.id === userPlaylist.id);
 
@@ -468,6 +485,9 @@ export default {
               chunks.push(chunk);
             }
             if (this.performSubmittingData) {
+              if (chunks.length > 0) {
+                this.pushInfo(`${chunks.length} sets of tracks are waiting to be pushed to your playlist ${userPlaylist.name}...`);
+              }
               chunks.forEach((chunk) => {
                 // eslint-disable-next-line max-len
                 if (this.randomizeTracks) {
@@ -478,7 +498,7 @@ export default {
                   this.fetchService
                     .post(`playlists/${userPlaylist.id}/tracks?uris=${chunk.join(',')}`)
                     .then(() => {
-                      this.pushInfo(`${chunk.length} has been added to the playlist ${userPlaylist.name}`);
+                      this.pushInfo(`${chunk.length} tracks has been added to your playlist ${userPlaylist.name}`);
                     });
                 } else {
                   this.pushInfo('All the music has already been sorted, or already exists in the corresponding playlists, no action has been performed.');
@@ -488,6 +508,8 @@ export default {
               this.pushInfo('No operations have been performed.');
             }
           });
+        } else {
+          this.pushInfo('All the music has already been sorted, or already exists in the corresponding playlists, no action has been performed.');
         }
       });
     },
