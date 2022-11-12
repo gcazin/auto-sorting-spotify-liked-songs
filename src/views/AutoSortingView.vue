@@ -430,11 +430,8 @@ export default {
 
       let filteredGenres = [];
       const userPlaylists = this.userPlaylists.map((userPlaylist) => ({
-        id: userPlaylist.id,
-        name: userPlaylist.name,
+        ...userPlaylist,
         description: userPlaylist.description.replace(/[\\[\]']+/g, ''),
-        image: userPlaylist.image,
-        uri: userPlaylist.uri,
       }));
       console.log('user gfdsfe', this.userPlaylists)
       userPlaylists.forEach((userPlaylist) => {
@@ -444,10 +441,7 @@ export default {
               .find((filteredGenre) => filteredGenre.genre === userPlaylist.description);
             if (!findGenre) {
               filteredGenres.push({
-                playlistId: userPlaylist.id,
-                playlistName: userPlaylist.name,
-                playlistImage: userPlaylist.image,
-                playlistUri: userPlaylist.uri,
+                ...userPlaylist,
                 genre: userPlaylist.description,
                 genres: [],
               });
@@ -462,11 +456,7 @@ export default {
       const sortByGenre = [];
       filteredGenres.forEach((filteredGenre) => {
         sortByGenre.push({
-          id: filteredGenre.playlistId,
-          name: filteredGenre.playlistName,
-          image: filteredGenre.playlistImage,
-          uri: filteredGenre.playlistUri,
-          genre: filteredGenre.genre,
+          ...filteredGenre,
           tracks: [],
         });
         this.formattedData.forEach((g) => {
