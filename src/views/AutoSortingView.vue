@@ -122,9 +122,14 @@
         <tbody>
         <tr style="vertical-align: middle" v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)">
           <td>
-            <a :href="genre.uri" class="text-decoration-none">
-              <img :src="genre.image" class="rounded" height="50" :alt="`${genre.name}'s cover`">
-            </a>
+            <template v-if="genre.image">
+              <a :href="genre.uri" class="text-decoration-none">
+                <img :src="genre.image" class="rounded" height="50" :alt="`${genre.name}'s cover`">
+              </a>
+            </template>
+            <template v-else>
+              <span class="text-muted">No cover available</span>
+            </template>
           </td>
           <td><a :href="genre.uri" class="text-success text-decoration-none fw-bold">{{ genre.name }}</a></td>
           <td>[{{ genre.genre }}]</td>
@@ -210,7 +215,6 @@ export default {
     async getUserPlaylists() {
       const response = await this.fetchService.get('me/playlists');
       const data = await response;
-      console.log('playlists', data);
       return data;
     },
     /**
@@ -374,10 +378,12 @@ export default {
           id: item.id,
           description: item.description.toLowerCase(),
           name: item.name,
-          image: item.images.length === 1
-            ? item.images.map((image) => image.url)[0]
-            : item.images.find((image) => image.height === 300).url,
-          uri: item.external_urls.spotify,
+          ...(item.images.length > 0 ? {
+            image: item.images.length === 1
+              ? item.images.map((image) => image.url)[0]
+              : item.images.find((image) => image.height === 300).url,
+            uri: item.external_urls.spotify,
+          } : null),
         })).flat())];
     },
     /**
@@ -433,7 +439,6 @@ export default {
         ...userPlaylist,
         description: userPlaylist.description.replace(/[\\[\]']+/g, ''),
       }));
-      console.log('user gfdsfe', this.userPlaylists)
       userPlaylists.forEach((userPlaylist) => {
         genres.forEach((genre) => {
           if (genre.includes(userPlaylist.description)) {
@@ -474,8 +479,14 @@ export default {
         });
       });
       this.genres = sortByGenre;
-      console.log('sort', sortByGenre)
       this.pushInfo(`Your playlists with valid description has been successfully retrieved, ${this.genres.length} found !`);
+      let counter = 0;
+      const doneMessage = () => {
+        counter += 1;
+        if (userPlaylists.length === counter) {
+          this.pushInfo('All operations has been performed.');
+        }
+      };
       this.userPlaylists.forEach((userPlaylist) => {
         const tracks = sortByGenre.find((sort) => sort.id === userPlaylist.id);
 
@@ -487,34 +498,42 @@ export default {
               .map((track) => track.uri)
               .filter((checkInPlaylist) => !checkInPlaylists.find((c) => checkInPlaylist === c));
 
-            const chunks = [];
-            const chunkSize = 100;
-            for (let i = 0; i < tracksToBeAdded.length; i += chunkSize) {
-              const chunk = tracksToBeAdded.slice(i, i + chunkSize);
-              chunks.push(chunk);
-            }
             if (this.performSubmittingData) {
-              if (chunks.length > 0) {
-                this.pushInfo(`${chunks.length} sets of tracks are waiting to be pushed to your playlist ${userPlaylist.name}...`);
+              if (tracksToBeAdded.length > 0) {
+                this.pushInfo(`${tracksToBeAdded.length} tracks are be sending to your playlist ${userPlaylist.name}...`);
+                const chunks = [];
+                const chunkSize = 100;
+                for (let i = 0; i < tracksToBeAdded.length; i += chunkSize) {
+                  const chunk = tracksToBeAdded.slice(i, i + chunkSize);
+                  chunks.push(chunk);
+                }
+                if (chunks.length > 1) {
+                  this.pushInfo(`Only 100 tracks can be added at the same time, so ${chunks.length} sets of tracks are waiting to be pushed to your playlist ${userPlaylist.name}...`);
+                }
+                chunks.forEach((chunk) => {
+                  // eslint-disable-next-line max-len
+                  if (this.randomizeTracks) {
+                    this.pushInfo(`Randomize ${chunk.length} tracks...`);
+                    this.shuffleArray(chunk);
+                  }
+                  if (chunk.length > 0) {
+                    this.pushInfo(`Push to your playlist ${userPlaylist.name}...`);
+                    this.fetchService
+                      .post(`playlists/${userPlaylist.id}/tracks?uris=${chunk.join(',')}`)
+                      .then(() => {
+                        this.pushInfo(`${chunk.length} tracks has correctly be added to your playlist ${userPlaylist.name} !`);
+                      });
+                  } else {
+                    this.pushInfo('All the music has already been sorted, or already exists in the corresponding playlists, no action has been performed.');
+                  }
+                  doneMessage();
+                });
+              } else {
+                doneMessage();
               }
-              chunks.forEach((chunk) => {
-                // eslint-disable-next-line max-len
-                if (this.randomizeTracks) {
-                  this.shuffleArray(chunk);
-                }
-                if (chunk.length > 0) {
-                  this.pushInfo(`Push to your playlist ${userPlaylist.name}...`);
-                  this.fetchService
-                    .post(`playlists/${userPlaylist.id}/tracks?uris=${chunk.join(',')}`)
-                    .then(() => {
-                      this.pushInfo(`${chunk.length} tracks has been added to your playlist ${userPlaylist.name}`);
-                    });
-                } else {
-                  this.pushInfo('All the music has already been sorted, or already exists in the corresponding playlists, no action has been performed.');
-                }
-              });
             } else {
-              this.pushInfo('No operations have been performed.');
+              this.pushInfo(`No operations have been performed on your playlist ${userPlaylist.name}`);
+              doneMessage();
             }
           });
         } else {
