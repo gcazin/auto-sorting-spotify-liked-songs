@@ -6,7 +6,15 @@
     <div class="card-body">
       <h5 class="card-title text-white">{{ title }}</h5>
       <div class="card-text">
-        <slot></slot>
+        <div class="d-flex align-items-center gap-3 py-2" v-if="iconName">
+          <div class="fs-1">
+            <ion-icon class="bg-success rounded align-middle text-white p-2" :name="iconName"></ion-icon>
+          </div>
+          <div class="text-white d-flex align-items-center fs-2">
+            <slot></slot>
+          </div>
+        </div>
+        <slot v-else></slot>
       </div>
     </div>
     <div class="card-footer" v-if="hasFooter">
@@ -29,6 +37,9 @@ export default {
     hasFooter: {
       type: Boolean,
       default: false,
+    },
+    iconName: {
+      type: String,
     },
   },
 };

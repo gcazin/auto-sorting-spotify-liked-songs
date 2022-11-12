@@ -55,12 +55,12 @@
       <div class="container">
         <div class="row">
           <div class="col">
-            <Card title="Number of tracks">
+            <Card title="Number of tracks" icon-name="musical-notes-outline">
               {{ formattedData.length }}
             </Card>
           </div>
           <div class="col">
-            <Card title="Number of playlists">
+            <Card title="Number of playlists" icon-name="library-outline">
               {{ genres.length }}
             </Card>
           </div>
@@ -99,7 +99,7 @@
         <tbody>
         <tr v-for="genre in genresToAddInPlaylist">
           <td>[{{genre.genre}}]</td>
-          <td>{{ genre.tracks.length }}</td>
+          <td><span class="badge rounded-pill bg-dark">{{ genre.tracks.length }}</span></td>
           <td>
             <button @click="createUserPlaylist(genre.genre, genre.genres)" class="btn btn-outline-success fw-bold btn-sm">Add to spotify</button>
           </td>
@@ -113,16 +113,22 @@
       <table class="table table-borderless text-white">
         <thead>
         <tr>
+          <th scope="col"></th>
           <th scope="col">Playlist name</th>
           <th scope="col">Description</th>
           <th scope="col">Number of items added</th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)">
-          <td>{{ genre.name }}</td>
+        <tr style="vertical-align: middle" v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)">
+          <td>
+            <a :href="genre.uri" class="text-decoration-none">
+              <img :src="genre.image" class="rounded" height="50" :alt="`${genre.name}'s cover`">
+            </a>
+          </td>
+          <td><a :href="genre.uri" class="text-success text-decoration-none fw-bold">{{ genre.name }}</a></td>
           <td>[{{ genre.genre }}]</td>
-          <td>{{ genre.tracks.length }}</td>
+          <td><span class="badge rounded-pill bg-dark">{{ genre.tracks.length }}</span></td>
         </tr>
         </tbody>
       </table>
@@ -132,11 +138,11 @@
 
 <script>
 import Login from '@/components/Login.vue';
-import Card from "@/components/Card.vue";
+import Card from '@/components/Card.vue';
 
 export default {
   name: 'AutoSortingView',
-  components: {Card, Login },
+  components: { Card, Login },
   data() {
     return {
       me: null,
@@ -204,6 +210,7 @@ export default {
     async getUserPlaylists() {
       const response = await this.fetchService.get('me/playlists');
       const data = await response;
+      console.log('playlists', data);
       return data;
     },
     /**
@@ -367,6 +374,10 @@ export default {
           id: item.id,
           description: item.description.toLowerCase(),
           name: item.name,
+          image: item.images.length === 1
+            ? item.images.map((image) => image.url)[0]
+            : item.images.find((image) => image.height === 300).url,
+          uri: item.external_urls.spotify,
         })).flat())];
     },
     /**
@@ -422,7 +433,10 @@ export default {
         id: userPlaylist.id,
         name: userPlaylist.name,
         description: userPlaylist.description.replace(/[\\[\]']+/g, ''),
+        image: userPlaylist.image,
+        uri: userPlaylist.uri,
       }));
+      console.log('user gfdsfe', this.userPlaylists)
       userPlaylists.forEach((userPlaylist) => {
         genres.forEach((genre) => {
           if (genre.includes(userPlaylist.description)) {
@@ -432,6 +446,8 @@ export default {
               filteredGenres.push({
                 playlistId: userPlaylist.id,
                 playlistName: userPlaylist.name,
+                playlistImage: userPlaylist.image,
+                playlistUri: userPlaylist.uri,
                 genre: userPlaylist.description,
                 genres: [],
               });
@@ -448,6 +464,8 @@ export default {
         sortByGenre.push({
           id: filteredGenre.playlistId,
           name: filteredGenre.playlistName,
+          image: filteredGenre.playlistImage,
+          uri: filteredGenre.playlistUri,
           genre: filteredGenre.genre,
           tracks: [],
         });
@@ -466,6 +484,7 @@ export default {
         });
       });
       this.genres = sortByGenre;
+      console.log('sort', sortByGenre)
       this.pushInfo(`Your playlists with valid description has been successfully retrieved, ${this.genres.length} found !`);
       this.userPlaylists.forEach((userPlaylist) => {
         const tracks = sortByGenre.find((sort) => sort.id === userPlaylist.id);
