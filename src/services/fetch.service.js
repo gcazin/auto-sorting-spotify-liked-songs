@@ -6,6 +6,7 @@ class FetchService {
     this.headers = {};
     this.router = {};
     this.handleErrors = true;
+    this.spotifyUrlApi = import.meta.env.VITE_SPOTIFY_URL_API;
   }
 
   setRouter(router) {
@@ -25,7 +26,7 @@ class FetchService {
   }
 
   setUrl(endpoint, params) {
-    this.url = new URL(endpoint);
+    this.url = new URL(`${this.spotifyUrlApi}${endpoint}`);
     if (params) {
       Object.keys(params)
         .forEach((key) => this.url.searchParams.append(key, params[key]));
@@ -124,11 +125,11 @@ class FetchService {
   }
 
   processError(response, rawresponse) {
-    this.emitter.emit('alert', {
+    /*this.emitter.emit('alert', {
       type: 'error',
       content: 'Une erreur est survenue.',
     });
-    this.emitter.emit('close-loader');
+    this.emitter.emit('close-loader');*/
     this.logError(response, rawresponse);
   }
 

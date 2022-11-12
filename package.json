@@ -17,6 +17,7 @@
     "@vitejs/plugin-vue": "^3.1.2",
     "@vue/eslint-config-prettier": "^7.0.0",
     "babel-eslint": "^8.2.6",
+    "dotenv-webpack": "^8.0.1",
     "eslint": "^8.26.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",

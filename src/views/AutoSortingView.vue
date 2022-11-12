@@ -1,6 +1,5 @@
 <template>
   <div class="mb-4">
-
     <template v-if="formattedData && formattedData.length > 0">
       <p class="fs-5 mt-4">If you want to sort your liked music again, you can click this button again to start the process.</p>
       <Login text="Refresh data" />
@@ -73,34 +72,40 @@
   <div class="row">
     <div class="col">
       <div v-if="filteredGenres && filteredGenres.length > 0">
-        <table class="table table-dark table-striped" v-if="filteredGenres.length > 0">
+        <table class="table table-dark" v-if="filteredGenres.length > 0">
           <thead>
           <tr>
-            <th scope="col">Genre</th>
-            <th scope="col">Data to add to playlist description</th>
+            <th scope="col">Description to put in your playlist</th>
+            <th scope="col">Number of items</th>
+            <th scope="col">Add to your playlist</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="genre in filteredGenres.sort((a, b) => b.genres.length - a.genres.length)">
-            <td>{{genre.genre}}</td>
-            <td>{{genre.genres.join(', ')}}</td>
+          <tr v-for="genre in genresToAddInPlaylist">
+            <td>[{{genre.genre}}]</td>
+            <td>{{ genre.tracks.length }}</td>
+            <td>
+              <button @click="createUserPlaylist(genre.genre, genre.genres)" class="btn btn-outline-success fw-bold btn-sm">Add to spotify</button>
+            </td>
           </tr>
           </tbody>
         </table>
       </div>
     </div>
     <div class="col text-white" v-if="showGenres">
-      <table class="table table-dark table-striped" v-if="genres.length > 0">
+      <table class="table table-dark" v-if="genres.length > 0">
         <thead>
         <tr>
-          <th scope="col">Genre</th>
-          <th scope="col">Number of items</th>
+          <th scope="col">Playlist name</th>
+          <th scope="col">Description</th>
+          <th scope="col">Number of items added</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)">
-          <td>{{genre.genre}}</td>
-          <td>{{genre.tracks.length}}</td>
+          <td>{{ genre.name }}</td>
+          <td>[{{ genre.genre }}]</td>
+          <td>{{ genre.tracks.length }}</td>
         </tr>
         </tbody>
       </table>
@@ -112,7 +117,7 @@
 import Login from '@/components/Login.vue';
 
 export default {
-  name: 'AboutView',
+  name: 'AutoSortingView',
   components: { Login },
   data() {
     return {
@@ -123,6 +128,7 @@ export default {
       userPlaylists: [],
       formattedData: [],
       filteredGenres: [],
+      genresToAddInPlaylist: [],
       infos: [],
       loading: false,
 
@@ -143,15 +149,15 @@ export default {
      */
     getCredentials() {
       const { code } = this.$route.query;
-      const clientId = 'ead24efe803043aaabfedf71fba1df14';
-      const clientSecret = '86bd5605e738439298d15cf3ddd0f0ac';
+      const clientId = import.meta.env.VITE_CLIENT_ID;
+      const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
       return new Promise((successCallback) => {
         fetch('https://accounts.spotify.com/api/token', {
           method: 'POST',
           body: new URLSearchParams({
             code,
             grant_type: 'authorization_code',
-            redirect_uri: 'http://localhost:5173/about',
+            redirect_uri: import.meta.env.VITE_REDIRECT_URI,
           }),
           headers: {
             Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`).toString()}`,
@@ -169,7 +175,7 @@ export default {
      * @returns {Promise<*>}
      */
     async getProfile() {
-      const response = await this.fetchService.get('https://api.spotify.com/v1/me');
+      const response = await this.fetchService.get('me');
       const data = await response;
       return data;
     },
@@ -178,7 +184,7 @@ export default {
      * @returns {Promise<*>}
      */
     async getUserPlaylists() {
-      const response = await this.fetchService.get('https://api.spotify.com/v1/me/playlists');
+      const response = await this.fetchService.get('me/playlists');
       const data = await response;
       return data;
     },
@@ -188,12 +194,14 @@ export default {
      * @returns {Promise<FlatArray<*[], 1>[]>}
      */
     async getPlaylistTracks(userPlaylist) {
-      const response = await this.fetchService.get(`https://api.spotify.com/v1/playlists/${userPlaylist.id}/tracks?fields=items(track(name,uri)),total`);
+      const response = await this.fetchService
+        .get(`playlists/${userPlaylist.id}/tracks?fields=items(track(name,uri)),total`);
       const data = await response;
       let playlistTracks = [];
       let offset = 0;
       for (let i = 0; i < Math.ceil(data.total / 100); i++) {
-        const fetchNextTracks = await this.fetchService.get(`https://api.spotify.com/v1/playlists/${userPlaylist.id}/tracks?fields=items(track(name,uri))&offset=${offset}`);
+        const fetchNextTracks = await this.fetchService
+          .get(`playlists/${userPlaylist.id}/tracks?fields=items(track(name,uri))&offset=${offset}`);
         const fetchNextTracksData = await fetchNextTracks;
         if (fetchNextTracksData.total < 100) {
           offset = fetchNextTracksData.total;
@@ -210,12 +218,14 @@ export default {
      * @returns {Promise<FlatArray<*[], 1>[]>}
      */
     async getLikedTracks() {
-      const response = await this.fetchService.get(`https://api.spotify.com/v1/me/tracks?=limit=${this.numberOfItems}`);
+      const response = await this.fetchService
+        .get(`me/tracks?=limit=${this.numberOfItems}`);
       const data = await response;
       let tracks = [];
       let offset = 0;
       for (let i = 0; i < Math.ceil(data.total / this.numberOfItems); i++) {
-        const fetchNextTracks = await this.fetchService.get(`https://api.spotify.com/v1/me/tracks?offset=${offset}&limit=${this.numberOfItems}`);
+        const fetchNextTracks = await this.fetchService
+          .get(`me/tracks?offset=${offset}&limit=${this.numberOfItems}`);
         const fetchNextTracksData = await fetchNextTracks;
         if (fetchNextTracksData.total < 50) {
           offset = fetchNextTracksData.total;
@@ -233,16 +243,34 @@ export default {
      */
     async getGenres() {
       return new Promise(async (successCallback) => {
-        for (const likedTrack of this.likedTracks.map((likedTrack) => likedTrack.track)) {
-          for (const liked of likedTrack.artists.map((artist) => artist.id).flat()) {
-            const data = await this.fetchService.get(`https://api.spotify.com/v1/artists/${liked}`);
-            const artist = await data;
+        const artists = [];
+        for (const likedTrack of this.likedTracks) {
+          for (const artist of likedTrack.track.artists) {
+            const find = artists.find((a) => a.id === artist.id);
+            if (!find) {
+              artists.push({
+                id: artist.id,
+                data: [],
+              });
+            }
+
+            let artistData;
+            let findArtistData = artists.find((a) => a.id === artist.id).data;
+            if (findArtistData.length === 0) {
+              const fetchData = await this.fetchService
+                .get(`artists/${artist.id}`);
+              const data = await fetchData;
+              findArtistData = data;
+              artistData = findArtistData;
+            } else {
+              artistData = artists.find((a) => a.id === artist.id).data;
+            }
             this.formattedData.push({
-              id: likedTrack.id,
-              song: likedTrack.name,
-              uri: likedTrack.uri,
-              genres: artist.genres,
-              artist: likedTrack.artists.map((artist) => ({
+              id: likedTrack.track.id,
+              song: likedTrack.track.name,
+              uri: likedTrack.track.uri,
+              genres: artistData.genres,
+              artist: likedTrack.track.artists.map((artist) => ({
                 name: artist.name,
                 id: artist.id,
               })).flat(),
@@ -296,26 +324,30 @@ export default {
         });
       });
     },
+    createUserPlaylist(title, description) {
+      this.fetchService.post(`users/${this.me.id}/playlists`, {
+        name: title,
+        description: description.join(', '),
+        public: false,
+      }).then((response) => {
+        console.log(response);
+        console.log('playlist crée');
+      });
+    },
     /**
      * Format user playlists
      * @param userPlaylists
      */
     getFormattedUserPlaylists(userPlaylists) {
       this.userPlaylists = [...new Set(userPlaylists.items
-        .filter((item) => item.description !== '')
+        .filter((item) => item.description !== ''
+          && item.description.startsWith('[')
+          && item.description.endsWith(']'))
         .map((item) => ({
           id: item.id,
           description: item.description.toLowerCase(),
           name: item.name,
-        }))
-        .map((userPlaylist) => {
-          const description = userPlaylist.description.trim().split(',');
-          return description.map((desc) => ({
-            id: userPlaylist.id,
-            description: desc.trim(),
-            name: userPlaylist.name,
-          }));
-        }).flat())];
+        })).flat())];
     },
     /**
      * Main function to send the data to the Spotify API
@@ -324,42 +356,102 @@ export default {
       /* Genre de toutes les musiques likés */
       const genres = [...new Set(this.formattedData.map((data) => data.genres).flat())];
 
-      // console.log('genres', genres);
+      let filterGenres = [];
+      genres.forEach((genre) => {
+        const explode = genre.split(' ');
+        filterGenres.push(explode);
+        filterGenres = filterGenres.flat();
+      });
+      this.genresToAddInPlaylist = filterGenres;
 
-      let filteredGenres = [];
+      let findFilteredGenre = [];
       genres.forEach((genre) => {
         const explode = genre.split(' ');
         explode.forEach((e) => {
-          const findFilteredGenre = filteredGenres.find((filteredGenre) => filteredGenre.genre === e);
-          if (findFilteredGenre) {
-            findFilteredGenre.genres.push(genre);
+          const findFilteredGenres = findFilteredGenre
+            .find((filteredGenre) => filteredGenre.genre === e);
+          if (findFilteredGenres) {
+            findFilteredGenres.genres.push(genre);
           } else {
-            filteredGenres.push({
+            findFilteredGenre.push({
               genre: e,
               genres: [],
+              tracks: [],
             });
+          }
+        });
+      });
+      findFilteredGenre = findFilteredGenre.filter((filteredGenre) => filteredGenre.genres.length);
+      this.formattedData.forEach((fd) => {
+        fd.genres.forEach((fg) => {
+          findFilteredGenre.forEach((t) => {
+            if (fg.includes(t.genre)) {
+              if (!t.tracks.includes(fd.id)) {
+                t.tracks.push(fd.id);
+              }
+            }
+          });
+        });
+      });
+      this.genresToAddInPlaylist = findFilteredGenre
+        .sort((a, b) => b.tracks.length - a.tracks.length)
+        .slice(0, 10);
+
+      console.log('test', this.genresToAddInPlaylist);
+
+      let filteredGenres = [];
+      const userPlaylists = this.userPlaylists.map((userPlaylist) => ({
+        id: userPlaylist.id,
+        name: userPlaylist.name,
+        description: userPlaylist.description.replace(/[\\[\]']+/g, ''),
+      }));
+      userPlaylists.forEach((userPlaylist) => {
+        genres.forEach((genre) => {
+          if (genre.includes(userPlaylist.description)) {
+            const findGenre = filteredGenres
+              .find((filteredGenre) => filteredGenre.genre === userPlaylist.description);
+            if (!findGenre) {
+              filteredGenres.push({
+                playlistId: userPlaylist.id,
+                playlistName: userPlaylist.name,
+                genre: userPlaylist.description,
+                genres: [],
+              });
+            } else {
+              findGenre.genres.push(genre);
+            }
           }
         });
       });
       filteredGenres = filteredGenres.filter((filteredGenre) => filteredGenre.genres.length);
       this.filteredGenres = filteredGenres;
-
       const sortByGenre = [];
-      genres.forEach((genre) => {
+      filteredGenres.forEach((filteredGenre) => {
         sortByGenre.push({
-          genre,
+          id: filteredGenre.playlistId,
+          name: filteredGenre.playlistName,
+          genre: filteredGenre.genre,
           tracks: [],
         });
         this.formattedData.forEach((g) => {
-          if (g.genres.includes(genre)) {
-            sortByGenre.find((sortG) => sortG.genre === genre).tracks.push(g);
+          if (g.genres.length > 0) {
+            g.genres.forEach((t) => {
+              const findTracks = sortByGenre
+                .find((sortG) => sortG.genre === filteredGenre.genre).tracks;
+              if (t.includes(filteredGenre.genre)) {
+                if (!findTracks.find((ft) => ft.id === g.id)) {
+                  findTracks.push(g);
+                }
+              }
+            });
           }
         });
       });
       this.genres = sortByGenre;
+      console.log(this.genres);
       this.pushInfo('Your tracks styles has been successfully retrieved!');
       this.userPlaylists.forEach((userPlaylist) => {
-        const tracks = sortByGenre.find((sort) => sort.genre === userPlaylist.description);
+        const tracks = sortByGenre.find((sort) => sort.id === userPlaylist.id);
 
         if (tracks) {
           this.getPlaylistTracks(userPlaylist).then((playlistTracks) => {
@@ -384,7 +476,7 @@ export default {
                 if (chunk.length > 0) {
                   this.pushInfo(`Push to your playlist ${userPlaylist.name}...`);
                   this.fetchService
-                    .post(`https://api.spotify.com/v1/playlists/${userPlaylist.id}/tracks?uris=${chunk.join(',')}`)
+                    .post(`playlists/${userPlaylist.id}/tracks?uris=${chunk.join(',')}`)
                     .then(() => {
                       this.pushInfo(`${chunk.length} has been added to the playlist ${userPlaylist.name}`);
                     });

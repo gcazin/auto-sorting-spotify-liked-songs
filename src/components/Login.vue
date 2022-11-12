@@ -21,13 +21,13 @@ export default {
   methods: {
     login() {
       const redirectUri = new URL(
-        'about',
+        'auto-sorting',
         window.location.href,
       );
       localStorage.setItem('redirect-uri', redirectUri.toString());
 
       const state = (Math.random() + 1).toString(36).substring(2);
-      const clientId = 'ead24efe803043aaabfedf71fba1df14';
+      const clientId = import.meta.env.VITE_CLIENT_ID;
       const scopes = [
         'user-read-private',
         'user-read-email',
