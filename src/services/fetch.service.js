@@ -2,7 +2,6 @@ class FetchService {
   constructor() {
     this.url = {};
     this.options = {};
-    this.endpoint = null;
     this.headers = {};
     this.router = {};
     this.handleErrors = true;
