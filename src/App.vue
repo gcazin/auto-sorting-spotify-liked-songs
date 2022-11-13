@@ -8,7 +8,9 @@ import { RouterLink, RouterView } from 'vue-router';
       <header class="container-fluid h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <div>
-            <a href="/" class="display-5 fw-bold text-decoration-none text-white">Auto sorting liked songs</a>
+            <a href="/" class="display-6 fw-bold text-decoration-none text-white text-uppercase">
+              Auto sorting liked songs
+            </a>
           </div>
           <div class="container my-4">
             <RouterView />
@@ -23,8 +25,4 @@ import { RouterLink, RouterView } from 'vue-router';
 html, body {
   background: #151521;
 }
-/*.full-page{
-  height: 100vh;
-  width: 100vw;
-}*/
 </style>

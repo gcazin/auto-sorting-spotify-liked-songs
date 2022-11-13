@@ -1,14 +1,12 @@
-# auto-sorting-liked-songs
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7963e4b5-269a-481e-a901-537704e8f050/deploy-status)](https://app.netlify.com/sites/auto-sorting-spotify-liked-songs/deploys)
 
-This template should help get you started developing with Vue 3 in Vite.
+# Auto sorting liked songs on Spotify
 
-## Recommended IDE Setup
+**This small utility allows you to retrieve your latest favorite music, extract the genre and categorize them in the right playlists.**
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Setup environment variables
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+Rename `.env.example` to `.env` and put your credentials inside the appropriate environment variables
 
 ## Project Setup
 
