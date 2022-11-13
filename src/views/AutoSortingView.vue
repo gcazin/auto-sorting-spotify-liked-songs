@@ -48,104 +48,136 @@
   </Card>
 
   <!-- Dashboard -->
-    <!-- Statistics -->
-    <div class="row" v-if="me && 'display_name' in me">
-      <h1 class="text-white mb-4">{{ me?.display_name }}'s dashboard</h1>
-      <div class="container">
-        <div class="row">
-          <div class="col">
-            <Card title="Number of tracks" icon-name="musical-notes-outline">
-              {{ formattedData.length }}
-            </Card>
-          </div>
-          <div class="col" v-if="genres.length">
-            <Card title="Number of playlists" icon-name="library-outline" v-if="genres.length">
-              {{ genres.length }}
-            </Card>
-          </div>
+  <!-- Statistics -->
+  <div class="row" v-if="me && 'display_name' in me">
+    <h3 class="text-white mb-4 text-uppercase">{{ me?.display_name }}'s dashboard</h3>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <Card title="Number of tracks" icon-name="musical-notes-outline">
+            {{ formattedData.length }}
+          </Card>
+        </div>
+        <div class="col" v-if="genres.length">
+          <Card title="Number of playlists" icon-name="library-outline" v-if="genres.length">
+            {{ genres.length }}
+          </Card>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Liked tracks card -->
-    <div class="row" v-if="formattedData.length && genres.length && filteredGenres.length">
-      <div class="col" v-if="showLikedTracks">
-        <Card title="Liked tracks">
-          <div class="about">
-            <ul class="list-group list-group-flush list-group-numbered  text-white">
-              <template v-for="track in formattedData">
-                <li class="list-group-item text-white" style="background: transparent"><span class="bold">
+  <!-- Liked tracks card -->
+  <div class="row" v-if="formattedData.length && genres.length && filteredGenres.length">
+    <div class="col" v-if="showLikedTracks">
+      <Card title="Liked tracks">
+        <div class="about">
+          <ul class="list-group list-group-flush list-group-numbered  text-white">
+            <template v-for="track in formattedData">
+              <li class="list-group-item text-white" style="background: transparent"><span class="bold">
             {{ track.song }}</span>
-                  de <span class="bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
-                  (<span class="bold">{{ track.genres.join(',') }}</span>)</li>
-              </template>
-            </ul>
-          </div>
-        </Card>
-      </div>
+                de <span class="bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
+                (<span class="bold">{{ track.genres.join(',') }}</span>)</li>
+            </template>
+          </ul>
+        </div>
+      </Card>
     </div>
+  </div>
 
-    <!-- Filtered genres card -->
-    <Card title="Filtered genres" v-if="genresToAddInPlaylist.length">
-      <table class="table text-white table-borderless">
-        <thead>
-        <tr>
-          <th scope="col">Description to put in your playlist</th>
-          <th scope="row">Number of items</th>
-          <th scope="col"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="genre in genresToAddInPlaylist">
-          <td>[{{genre.genre}}]</td>
-          <td><span class="badge rounded-pill bg-dark">{{ genre.tracks.length }}</span></td>
-          <td>
-            <button @click="createUserPlaylist(genre.genre, genre.genres)" class="btn btn-outline-success fw-bold btn-sm">Add to spotify</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </Card>
+  <!-- Filtered genres card -->
+  <Card title="Filtered genres" v-if="genresToAddInPlaylist.length">
+    <table class="table text-white table-borderless">
+      <thead>
+      <tr>
+        <th class="text-uppercase" scope="col">Description shortcode</th>
+        <th class="text-uppercase text-end" scope="row">Number of items</th>
+        <th scope="col"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="genre in genresToAddInPlaylist">
+        <td class="text-uppercase">
+          [{{genre.genre}}]
+          <span class="badge rounded-pill bg-dark" data-bs-toggle="modal" :data-bs-target="`#${genre.genre}`">
+            <ion-icon name="information-circle-outline"></ion-icon>
+          </span>
+        </td>
+        <td class="text-end"><span class="badge rounded-pill bg-dark">{{ genre.tracks.length }}</span></td>
+        <td class="text-end">
+          <template v-if="!genres.map((g) => g.description).find((g) => g === genre.genre)">
+            <button @click="createUserPlaylist(genre.genre)" class="btn btn-outline-success fw-bold btn-sm">Add to spotify</button>
+          </template>
+          <template v-else>
+            <button disabled class="btn btn-outline-secondary fw-bold btn-sm">
+              Already existing.
+            </button>
+          </template>
+        </td>
 
-    <!-- Playlists found -->
-    <Card title="Founded playlists" v-if="formattedData.length && genres.length && filteredGenres.length">
-      <table class="table table-borderless text-white">
-        <thead>
-        <tr>
-          <th scope="col"></th>
-          <th scope="col">Playlist name</th>
-          <th scope="col">Description</th>
-          <th scope="col">Number of items added</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr style="vertical-align: middle" v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)">
-          <td>
-            <template v-if="genre.image">
-              <a :href="genre.uri" class="text-decoration-none">
-                <img :src="genre.image" class="rounded" height="50" :alt="`${genre.name}'s cover`">
-              </a>
-            </template>
-            <template v-else>
-              <span class="text-muted">No cover available</span>
-            </template>
-          </td>
-          <td><a :href="genre.uri" class="text-success text-decoration-none fw-bold">{{ genre.name }}</a></td>
-          <td>[{{ genre.genre }}]</td>
-          <td><span class="badge rounded-pill bg-dark">{{ genre.tracks.length }}</span></td>
-        </tr>
-        </tbody>
-      </table>
-    </Card>
+        <Modal :id="genre.genre" :title="`Associated genres to ${genre.genre}`">
+          <template v-if="genre.genres.length">{{ genre.genres.join(', ') }}</template>
+          <template v-else>No data to be displayed.</template>
+        </Modal>
+      </tr>
+      </tbody>
+    </table>
+  </Card>
+
+  <!-- Playlists found -->
+  <Card title="Founded playlists" v-if="formattedData.length && genres.length && filteredGenres.length">
+    <table class="table table-borderless text-white">
+      <thead>
+      <tr>
+        <th scope="col"></th>
+        <th class="text-uppercase" scope="col">Playlist name</th>
+        <th class="text-uppercase" scope="col">Description</th>
+        <th class="text-uppercase" scope="col">Number of items added</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr
+        style="vertical-align: middle"
+        v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)"
+      >
+        <td>
+          <template v-if="genre.image">
+            <a :href="genre.uri" class="text-decoration-none">
+              <img :src="genre.image" class="rounded" height="50" :alt="`${genre.name}'s cover`">
+              +
+            </a>
+          </template>
+          <template v-else>
+            <span class="text-muted">No cover available</span>
+          </template>
+        </td>
+        <td><a :href="genre.uri" class="text-success text-decoration-none fw-bold">{{ genre.name }}</a></td>
+        <td>[{{ genre.genre }}]</td>
+        <td>
+          <span
+            class="badge rounded-pill bg-success"
+            v-if="'numberOfItemsAdded' in userPlaylists.find((userPlaylist) => userPlaylist.description === `[${genre.genre}]`)"
+          >
+              {{ userPlaylists.find((userPlaylist) => userPlaylist.description === `[${genre.genre}]`).numberOfItemsAdded }}
+          </span>
+          <span class="badge rounded-pill bg-dark" v-else>
+              0
+            </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </Card>
 </template>
 
 <script>
 import Login from '@/components/Login.vue';
 import Card from '@/components/Card.vue';
+import Modal from '@/components/Modal.vue';
 
 export default {
   name: 'AutoSortingView',
-  components: { Card, Login },
+  components: { Modal, Card, Login },
   data() {
     return {
       me: null,
@@ -339,26 +371,32 @@ export default {
             // Get user liked tracks
             this.getLikedTracks().then((likedTracks) => {
               this.likedTracks = likedTracks;
-              this.pushInfo(`Your liked tracks has been successfully retrieved, ${this.likedTracks.length} found !`);
-              this.pushInfo('Get styles of your liked tracks...');
+              if (this.likedTracks.length > 0) {
+                this.pushInfo(`Your liked tracks has been successfully retrieved, ${this.likedTracks.length} found !`);
+                this.pushInfo('Get styles of your liked tracks...');
 
-              // Get user liked tracks style
-              this.getGenres().then(() => {
-                // And we finally send data to the Spotify API
-                this.sendDataToSpotifyApi();
+                // Get user liked tracks style
+                this.getGenres().then(() => {
+                  // And we finally send data to the Spotify API
+                  this.sendDataToSpotifyApi();
+                  this.loading = false;
+                });
+              } else {
+                this.pushInfo('No tracks liked found, try to add your first liked song.');
                 this.loading = false;
-              });
+              }
             });
           });
         });
       });
     },
-    createUserPlaylist(title, description) {
+    createUserPlaylist(title) {
       this.fetchService.post(`users/${this.me.id}/playlists`, {
         name: title,
-        description: description.join(', '),
+        description: `[${title}]`,
         public: false,
       }).then((response) => {
+        this.autoSortingLikedTracks();
         console.log(response);
         console.log('playlist crée');
       });
@@ -399,7 +437,7 @@ export default {
       });
       this.genresToAddInPlaylist = filterGenres;
 
-      let findFilteredGenre = [];
+      const findFilteredGenre = [];
       genres.forEach((genre) => {
         const explode = genre.split(' ');
         explode.forEach((e) => {
@@ -416,7 +454,7 @@ export default {
           }
         });
       });
-      findFilteredGenre = findFilteredGenre.filter((filteredGenre) => filteredGenre.genres.length);
+      // findFilteredGenre = findFilteredGenre.filter((filteredGenre) => filteredGenre.genres.length);
       this.formattedData.forEach((fd) => {
         fd.genres.forEach((fg) => {
           findFilteredGenre.forEach((t) => {
@@ -480,13 +518,12 @@ export default {
       if (this.genres.length > 0) {
         this.pushInfo(
           `Your playlists with valid description has been successfully retrieved,
-        ${this.genres.length} found !`
+        ${this.genres.length} found !`,
         );
       } else {
-        console.log(this.genresToAddInPlaylist);
         this.pushInfo(
           `No playlists found.
-          Try to add your your first playlist by adding [${this.genresToAddInPlaylist[0].genre}] for example`
+          Try to add your your first playlist by adding [${this.genresToAddInPlaylist[0].genre}] for example`,
         );
       }
       let counter = 0;
@@ -502,16 +539,14 @@ export default {
         if (tracks) {
           this.getPlaylistTracks(userPlaylist).then((playlistTracks) => {
             const checkInPlaylists = [...new Set(playlistTracks.map((check) => check.track.uri))];
-            console.log('fdfsfd', playlistTracks);
 
             const tracksToBeAdded = [...new Set(tracks.tracks
               .map((track) => track.uri))]
               .filter((checkInPlaylist) => !checkInPlaylists.find((c) => checkInPlaylist === c));
 
-            console.log('tracks', tracks.tracks);
-            console.log('check', checkInPlaylists);
             if (this.performSubmittingData) {
               if (tracksToBeAdded.length > 0) {
+                userPlaylist.numberOfItemsAdded = tracksToBeAdded.length;
                 this.pushInfo(`${tracksToBeAdded.length} tracks are be sending to your playlist ${userPlaylist.name}...`);
                 const chunks = [];
                 const chunkSize = 100;

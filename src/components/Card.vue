@@ -4,7 +4,7 @@
       <slot name="header"></slot>
     </div>
     <div class="card-body">
-      <h5 class="card-title text-white">{{ title }}</h5>
+      <h5 class="card-title text-white text-uppercase">{{ title }}</h5>
       <div class="card-text">
         <div class="d-flex align-items-center gap-3 py-2" v-if="iconName">
           <div class="fs-1">
