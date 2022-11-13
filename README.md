@@ -1,5 +1,7 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/7963e4b5-269a-481e-a901-537704e8f050/deploy-status)](https://app.netlify.com/sites/auto-sorting-spotify-liked-songs/deploys)
 
+![Home page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/home.jpg)
+
 # Auto sorting liked songs on Spotify
 
 **This small utility allows you to retrieve your latest favorite music, extract the genre and categorize them in the right playlists.**
