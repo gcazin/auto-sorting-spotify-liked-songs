@@ -33,3 +33,13 @@ npm run build
 ```sh
 npm run lint
 ```
+
+## Usage
+
+### Form
+
+![Form](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/autosort-page.jpg)
+
+### Process page
+
+![Process page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/process.jpg)
