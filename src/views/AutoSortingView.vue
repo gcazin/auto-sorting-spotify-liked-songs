@@ -478,10 +478,16 @@ export default {
       });
       this.genres = sortByGenre;
       if (this.genres.length > 0) {
-        this.pushInfo(`Your playlists with valid description has been successfully retrieved, ${this.genres.length} found !`);
+        this.pushInfo(
+          `Your playlists with valid description has been successfully retrieved,
+        ${this.genres.length} found !`
+        );
       } else {
-        console.log(this.genresToAddInPlaylist)
-        this.pushInfo(`No playlists found. Try to add your your first playlist by adding [${this.genresToAddInPlaylist[0].genre}] for example`);
+        console.log(this.genresToAddInPlaylist);
+        this.pushInfo(
+          `No playlists found.
+          Try to add your your first playlist by adding [${this.genresToAddInPlaylist[0].genre}] for example`
+        );
       }
       let counter = 0;
       const doneMessage = () => {
@@ -495,12 +501,15 @@ export default {
 
         if (tracks) {
           this.getPlaylistTracks(userPlaylist).then((playlistTracks) => {
-            const checkInPlaylists = playlistTracks.map((check) => check.track.uri);
+            const checkInPlaylists = [...new Set(playlistTracks.map((check) => check.track.uri))];
+            console.log('fdfsfd', playlistTracks);
 
-            const tracksToBeAdded = tracks.tracks
-              .map((track) => track.uri)
+            const tracksToBeAdded = [...new Set(tracks.tracks
+              .map((track) => track.uri))]
               .filter((checkInPlaylist) => !checkInPlaylists.find((c) => checkInPlaylist === c));
 
+            console.log('tracks', tracks.tracks);
+            console.log('check', checkInPlaylists);
             if (this.performSubmittingData) {
               if (tracksToBeAdded.length > 0) {
                 this.pushInfo(`${tracksToBeAdded.length} tracks are be sending to your playlist ${userPlaylist.name}...`);
@@ -511,7 +520,10 @@ export default {
                   chunks.push(chunk);
                 }
                 if (chunks.length > 1) {
-                  this.pushInfo(`Only 100 tracks can be added at the same time, so ${chunks.length} sets of tracks are waiting to be pushed to your playlist ${userPlaylist.name}...`);
+                  this.pushInfo(
+                    `Only 100 tracks can be added at the same time,
+                    so ${chunks.length} sets of tracks are waiting to be pushed to your playlist ${userPlaylist.name}...`,
+                  );
                 }
                 chunks.forEach((chunk) => {
                   // eslint-disable-next-line max-len
@@ -527,7 +539,9 @@ export default {
                         this.pushInfo(`${chunk.length} tracks has correctly be added to your playlist ${userPlaylist.name} !`);
                       });
                   } else {
-                    this.pushInfo('All the music has already been sorted, or already exists in the corresponding playlists, no action has been performed.');
+                    this.pushInfo('All the music has already been sorted, '
+                      + 'or already exists in the corresponding playlists, '
+                      + 'no action has been performed.');
                   }
                   doneMessage();
                 });
