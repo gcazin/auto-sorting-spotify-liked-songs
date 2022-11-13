@@ -49,7 +49,7 @@
 
   <!-- Dashboard -->
   <!-- Statistics -->
-  <div class="row" v-if="me && 'display_name' in me">
+  <div class="row" v-if="me">
     <h3 class="text-white mb-4 text-uppercase">{{ me?.display_name }}'s dashboard</h3>
     <div class="container">
       <div class="row">
@@ -155,7 +155,6 @@
           <template v-if="genre.image">
             <a :href="genre.uri" class="text-decoration-none">
               <img :src="genre.image" class="rounded" height="50" :alt="`${genre.name}'s cover`">
-              +
             </a>
           </template>
           <template v-else>
