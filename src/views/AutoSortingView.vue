@@ -200,6 +200,9 @@ export default {
     };
   },
   methods: {
+    /** ======================
+     * AUTH
+     ** =====================/
     /**
      * Get credentials
      * Used to set the local storage token
@@ -237,6 +240,10 @@ export default {
       const data = await response;
       return data;
     },
+
+    /** ======================
+     * PLAYLISTS
+     ** =====================/
     /**
      * Get user playlists
      * @returns {Promise<*>}
@@ -272,6 +279,31 @@ export default {
       return playlistTracks;
     },
     /**
+     * Format user playlists
+     * @param userPlaylists
+     */
+    getFormattedUserPlaylists(userPlaylists) {
+      this.userPlaylists = [...new Set(userPlaylists.items
+        .filter((item) => item.description !== ''
+          && item.description.startsWith('[')
+          && item.description.endsWith(']'))
+        .map((item) => ({
+          id: item.id,
+          description: item.description.toLowerCase(),
+          name: item.name,
+          ...(item.images.length > 0 ? {
+            image: item.images.length === 1
+              ? item.images.map((image) => image.url)[0]
+              : item.images.find((image) => image.height === 300).url,
+            uri: item.external_urls.spotify,
+          } : null),
+        })).flat())];
+    },
+
+    /** ======================
+     * LIKED TRACKS
+     ** =====================/
+    /**
      * Get user liked tracks
      * @returns {Promise<FlatArray<*[], 1>[]>}
      */
@@ -295,6 +327,10 @@ export default {
       tracks = tracks.map((track) => track.items).flat();
       return tracks;
     },
+
+    /** ======================
+     * GENRES
+     ** =====================/
     /**
      * Get user tracks style
      * @returns {Promise<unknown>}
@@ -341,54 +377,10 @@ export default {
         return successCallback();
       });
     },
-    /**
-     * Main function to sort the tracks
-     */
-    autoSortingLikedTracks() {
-      this.loading = true;
-      this.pushInfo('Get credentials...');
-      // Get user credentials
-      this.getCredentials().then(async (response) => {
-        localStorage.setItem('token', response.access_token);
-        this.pushInfo('Successfully connected!');
-        this.pushInfo('Get profile...');
 
-        // Get user profile
-        this.getProfile().then((profile) => {
-          this.me = profile;
-          this.pushInfo('Profile successfully retrieved!');
-          this.pushInfo(`Welcome ${this.me.display_name} !`);
-          this.pushInfo('Get user playlists...');
-
-          // Get user playlists
-          this.getUserPlaylists().then((userPlaylists) => {
-            // Format user playlists
-            this.getFormattedUserPlaylists(userPlaylists);
-            this.pushInfo('Your playlists has been successfully retrieved!');
-            this.pushInfo('Get your liked tracks...');
-
-            // Get user liked tracks
-            this.getLikedTracks().then((likedTracks) => {
-              this.likedTracks = likedTracks;
-              if (this.likedTracks.length > 0) {
-                this.pushInfo(`Your liked tracks has been successfully retrieved, ${this.likedTracks.length} found !`);
-                this.pushInfo('Get styles of your liked tracks...');
-
-                // Get user liked tracks style
-                this.getGenres().then(() => {
-                  // And we finally send data to the Spotify API
-                  this.sendDataToSpotifyApi();
-                  this.loading = false;
-                });
-              } else {
-                this.pushInfo('No tracks liked found, try to add your first liked song.');
-                this.loading = false;
-              }
-            });
-          });
-        });
-      });
-    },
+    /** ======================
+     * HANDLE API SUBMITTING
+     ** =====================/
     /**
      * Create a user playlist
      * @param title
@@ -403,31 +395,9 @@ export default {
       });
     },
     /**
-     * Format user playlists
-     * @param userPlaylists
-     */
-    getFormattedUserPlaylists(userPlaylists) {
-      this.userPlaylists = [...new Set(userPlaylists.items
-        .filter((item) => item.description !== ''
-          && item.description.startsWith('[')
-          && item.description.endsWith(']'))
-        .map((item) => ({
-          id: item.id,
-          description: item.description.toLowerCase(),
-          name: item.name,
-          ...(item.images.length > 0 ? {
-            image: item.images.length === 1
-              ? item.images.map((image) => image.url)[0]
-              : item.images.find((image) => image.height === 300).url,
-            uri: item.external_urls.spotify,
-          } : null),
-        })).flat())];
-    },
-    /**
      * Main function to send the data to the Spotify API
      */
     sendDataToSpotifyApi() {
-      /* Genre de toutes les musiques likés */
       const genres = [...new Set(this.formattedData.map((data) => data.genres).flat())];
 
       let filterGenres = [];
@@ -449,7 +419,8 @@ export default {
               tracks: [],
             });
           }
-          const findFilteredGenres = findFilteredGenre.find((filteredGenre) => filteredGenre.genre === e);
+          const findFilteredGenres = findFilteredGenre
+            .find((filteredGenre) => filteredGenre.genre === e);
           if (findFilteredGenres) {
             findFilteredGenres.genres.push(genre);
           }
@@ -593,7 +564,63 @@ export default {
         }
       });
     },
+
+    /** ======================
+     * MAIN
+     ** =====================/
     /**
+     * Main function to sort the tracks
+     */
+    autoSortingLikedTracks() {
+      this.loading = true;
+      this.pushInfo('Get credentials...');
+      // Get user credentials
+      this.getCredentials().then(async (response) => {
+        localStorage.setItem('token', response.access_token);
+        this.pushInfo('Successfully connected!');
+        this.pushInfo('Get profile...');
+
+        // Get user profile
+        this.getProfile().then((profile) => {
+          this.me = profile;
+          this.pushInfo('Profile successfully retrieved!');
+          this.pushInfo(`Welcome ${this.me.display_name} !`);
+          this.pushInfo('Get user playlists...');
+
+          // Get user playlists
+          this.getUserPlaylists().then((userPlaylists) => {
+            // Format user playlists
+            this.getFormattedUserPlaylists(userPlaylists);
+            this.pushInfo('Your playlists has been successfully retrieved!');
+            this.pushInfo('Get your liked tracks...');
+
+            // Get user liked tracks
+            this.getLikedTracks().then((likedTracks) => {
+              this.likedTracks = likedTracks;
+              if (this.likedTracks.length > 0) {
+                this.pushInfo(`Your liked tracks has been successfully retrieved, ${this.likedTracks.length} found !`);
+                this.pushInfo('Get styles of your liked tracks...');
+
+                // Get user liked tracks style
+                this.getGenres().then(() => {
+                  // And we finally send data to the Spotify API
+                  this.sendDataToSpotifyApi();
+                  this.loading = false;
+                });
+              } else {
+                this.pushInfo('No tracks liked found, try to add your first liked song.');
+                this.loading = false;
+              }
+            });
+          });
+        });
+      });
+    },
+
+    /** ======================
+     * HELPERS
+     ** =====================/
+     /**
      * Push value to be displayed in debug terminal
      * @param value
      */
