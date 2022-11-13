@@ -10,12 +10,12 @@
       <Card>
         <p class="fs-5">Ready to be done with manual sorting? Click on the button below to start automatic sorting !</p>
         <div class="mb-3 form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="randomizeTracks" :checked="randomizeTracks" :disabled="loading">
-          <label class="form-check-label" for="flexSwitchCheckChecked">Randomize tracks?</label>
+          <input class="form-check-input" type="checkbox" id="randomizeTracks" v-model="randomizeTracks" :checked="randomizeTracks" :disabled="loading">
+          <label class="form-check-label" for="randomizeTracks">Randomize tracks?</label>
         </div>
         <div class="mb-3 form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="performSubmittingData" :checked="performSubmittingData" :disabled="loading">
-          <label class="form-check-label" for="flexSwitchCheckChecked">Submitting data?</label>
+          <input class="form-check-input" type="checkbox" id="performSubmittingData" v-model="performSubmittingData" :checked="performSubmittingData" :disabled="loading">
+          <label class="form-check-label" for="performSubmittingData">Submitting data?</label>
         </div>
       </Card>
       <div class="text-center">
@@ -29,16 +29,16 @@
   <!-- Options card -->
   <Card title="Options" v-if="infos.length > 0">
     <div class="form-check form-switch form-check-inline">
-      <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showGenres" :checked="showGenres" :disabled="loading">
-      <label class="form-check-label" for="flexSwitchCheckChecked">Show styles retrieved</label>
+      <input class="form-check-input" type="checkbox" id="showGenres" v-model="showGenres" :checked="showGenres" :disabled="loading">
+      <label class="form-check-label" for="showGenres">Show styles retrieved</label>
     </div>
     <div class="form-check form-switch form-check-inline">
-      <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showLikedTracks" :checked="showLikedTracks" :disabled="loading">
-      <label class="form-check-label" for="flexSwitchCheckChecked">Show liked tracks</label>
+      <input class="form-check-input" type="checkbox" id="showLikedTracks" v-model="showLikedTracks" :checked="showLikedTracks" :disabled="loading">
+      <label class="form-check-label" for="showLikedTracks">Show liked tracks</label>
     </div>
     <div class="form-check form-switch form-check-inline">
-      <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" v-model="showDebug" :checked="showDebug" :disabled="loading">
-      <label class="form-check-label" for="flexSwitchCheckChecked">Show debug information's</label>
+      <input class="form-check-input" type="checkbox" id="showDebug" v-model="showDebug" :checked="showDebug" :disabled="loading">
+      <label class="form-check-label" for="showDebug">Show debug information's</label>
     </div>
   </Card>
 
@@ -71,13 +71,44 @@
   <div class="row" v-if="formattedData.length && genres.length && filteredGenres.length">
     <div class="col" v-if="showLikedTracks">
       <Card title="Liked tracks">
+
+        <table class="table text-white table-borderless">
+          <thead>
+          <tr>
+            <th class="text-uppercase" scope="col">Song name</th>
+            <th class="text-uppercase" scope="row">Album</th>
+            <th class="text-uppercase" scope="row">Duration</th>
+            <th scope="col"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="track in formattedData">
+            <td class="text-uppercase">
+              <a class="text-decoration-none text-success fw-bold" :href="track.external_url">
+                {{ track.song }}
+              </a>
+              <p class="fs-6 text-muted">{{ track.artist.map((a) => a.name).join(', ') }}</p>
+            </td>
+            <td>{{ track.album }}</td>
+            <td>{{ `${new Date(track.duration_ms).getMinutes()}:${new Date(track.duration_ms).getSeconds()}` }}</td>
+          </tr>
+          </tbody>
+        </table>
+
         <div class="about">
-          <ul class="list-group list-group-flush list-group-numbered  text-white">
+          <ul class="list-group list-group-flush  text-white">
             <template v-for="track in formattedData">
-              <li class="list-group-item text-white" style="background: transparent"><span class="bold">
-            {{ track.song }}</span>
-                de <span class="bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
-                (<span class="bold">{{ track.genres.join(',') }}</span>)</li>
+              <li class="list-group-item text-white" style="background: transparent">
+                <a :href="track.external_url" class="text-decoration-none">
+                  <span class="fw-bold text-success">
+                    {{ track.song }}
+                  </span></a>
+                  de
+                  <span class="fw-bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
+                  <template v-if="track.genres.length">
+                    (<span class="fw-bold">Genres: </span><span class="bold">{{ track.genres.join(',') }}</span>)
+                  </template>
+              </li>
             </template>
           </ul>
         </div>
@@ -203,7 +234,7 @@ export default {
     /** ======================
      * AUTH
      ** =====================/
-    /**
+     /**
      * Get credentials
      * Used to set the local storage token
      * @returns {Promise<unknown>}
@@ -244,7 +275,7 @@ export default {
     /** ======================
      * PLAYLISTS
      ** =====================/
-    /**
+     /**
      * Get user playlists
      * @returns {Promise<*>}
      */
@@ -303,7 +334,7 @@ export default {
     /** ======================
      * LIKED TRACKS
      ** =====================/
-    /**
+     /**
      * Get user liked tracks
      * @returns {Promise<FlatArray<*[], 1>[]>}
      */
@@ -331,7 +362,7 @@ export default {
     /** ======================
      * GENRES
      ** =====================/
-    /**
+     /**
      * Get user tracks style
      * @returns {Promise<unknown>}
      */
@@ -369,6 +400,9 @@ export default {
                   name: artist.name,
                   id: artist.id,
                 })).flat(),
+                external_url: likedTrack.track.external_urls.spotify,
+                album: likedTrack.track.album.name,
+                duration_ms: likedTrack.track.duration_ms,
               });
             }
           }
@@ -381,7 +415,7 @@ export default {
     /** ======================
      * HANDLE API SUBMITTING
      ** =====================/
-    /**
+     /**
      * Create a user playlist
      * @param title
      */
@@ -568,7 +602,7 @@ export default {
     /** ======================
      * MAIN
      ** =====================/
-    /**
+     /**
      * Main function to sort the tracks
      */
     autoSortingLikedTracks() {
