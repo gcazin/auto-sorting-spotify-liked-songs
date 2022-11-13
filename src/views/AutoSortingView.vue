@@ -71,7 +71,6 @@
   <div class="row" v-if="formattedData.length && genres.length && filteredGenres.length">
     <div class="col" v-if="showLikedTracks">
       <Card title="Liked tracks">
-
         <table class="table text-white table-borderless">
           <thead>
           <tr>
@@ -94,24 +93,6 @@
           </tr>
           </tbody>
         </table>
-
-        <div class="about">
-          <ul class="list-group list-group-flush  text-white">
-            <template v-for="track in formattedData">
-              <li class="list-group-item text-white" style="background: transparent">
-                <a :href="track.external_url" class="text-decoration-none">
-                  <span class="fw-bold text-success">
-                    {{ track.song }}
-                  </span></a>
-                  de
-                  <span class="fw-bold">{{ track.artist.map((artist) => artist.name).join(',') }}</span>
-                  <template v-if="track.genres.length">
-                    (<span class="fw-bold">Genres: </span><span class="bold">{{ track.genres.join(',') }}</span>)
-                  </template>
-              </li>
-            </template>
-          </ul>
-        </div>
       </Card>
     </div>
   </div>
