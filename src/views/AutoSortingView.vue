@@ -76,19 +76,21 @@
           <tr>
             <th class="text-uppercase" scope="col">Song name</th>
             <th class="text-uppercase" scope="row">Album</th>
+            <th class="text-uppercase" scope="row">Genres</th>
             <th class="text-uppercase" scope="row">Duration</th>
             <th scope="col"></th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="track in formattedData">
+          <tr v-for="track in formattedData.splice(0, numberOfTracksDisplayed)">
             <td class="text-uppercase">
               <a class="text-decoration-none text-success fw-bold" :href="track.external_url">
                 {{ track.song }}
               </a>
-              <p class="fs-6 text-muted">{{ track.artist.map((a) => a.name).join(', ') }}</p>
+              <p class="fs-6 text-muted">{{ track.genres.join(', ') }}</p>
             </td>
             <td>{{ track.album }}</td>
+            <td>{{ track.genres.join(', ')}}</td>
             <td>{{ `${new Date(track.duration_ms).getMinutes()}:${new Date(track.duration_ms).getSeconds()}` }}</td>
           </tr>
           </tbody>
@@ -422,13 +424,27 @@ export default {
       let filterGenres = [];
       genres.forEach((genre) => {
         const explode = genre.split(' ');
-        filterGenres.push(explode);
         filterGenres = filterGenres.flat();
+        if (!filterGenres.includes(genre)) {
+          filterGenres.push(genre);
+        }
+        filterGenres.push(explode);
       });
-      this.genresToAddInPlaylist = filterGenres;
+      this.genresToAddInPlaylist = [...new Set(filterGenres)];
 
       const findFilteredGenre = [];
       genres.forEach((genre) => {
+        if (!findFilteredGenre.find((filteredGenre) => filteredGenre.genre === genre)) {
+          findFilteredGenre.push({
+            genre,
+            genres: [],
+            tracks: [],
+          });
+        }
+        const findFilteredGenres = findFilteredGenre.find((filteredGenre) => filteredGenre.genre === genre);
+        if (findFilteredGenres) {
+          findFilteredGenres.genres.push(genre);
+        }
         const explode = genre.split(' ');
         explode.forEach((e) => {
           if (!findFilteredGenre.find((filteredGenre) => filteredGenre.genre === e)) {
@@ -445,6 +461,7 @@ export default {
           }
         });
       });
+      console.log('find', findFilteredGenre);
       this.formattedData.forEach((fd) => {
         fd.genres.forEach((fg) => {
           findFilteredGenre.forEach((t) => {
