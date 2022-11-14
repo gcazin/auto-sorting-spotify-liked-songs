@@ -82,7 +82,7 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="track in formattedData.splice(0, numberOfTracksDisplayed)">
+          <tr v-for="track in formattedData">
             <td class="text-uppercase">
               <a class="text-decoration-none text-success fw-bold" :href="track.external_url">
                 {{ track.song }}
