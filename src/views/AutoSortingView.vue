@@ -113,7 +113,7 @@
     <table class="table text-white table-borderless">
       <thead>
       <tr>
-        <th class="text-uppercase" scope="col">Description shortcode</th>
+        <th class="text-uppercase" scope="col">Genre</th>
         <th class="text-uppercase text-end" scope="row">Number of items</th>
         <th scope="col"></th>
       </tr>
@@ -121,7 +121,7 @@
       <tbody>
       <tr v-for="genre in genresToAddInPlaylist">
         <td class="text-uppercase">
-          [{{genre.genre}}]
+          {{genre.genre}}
           <span class="badge rounded-pill bg-dark" data-bs-toggle="modal" :data-bs-target="`#${genre.genre}`">
             <ion-icon name="information-circle-outline"></ion-icon>
           </span>
