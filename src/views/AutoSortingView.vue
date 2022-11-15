@@ -579,8 +579,6 @@ export default {
      * @param isForPlaylistAutomaticallyCreated
      */
     submitTracksToPlaylist(tracks, userPlaylist, isForPlaylistAutomaticallyCreated = false) {
-      console.log('user', userPlaylist);
-      console.log('tracks', tracks);
       const chunks = [];
       const chunkSize = 100;
       for (let i = 0; i < tracks.length; i += chunkSize) {
