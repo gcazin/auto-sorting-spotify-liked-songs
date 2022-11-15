@@ -541,7 +541,7 @@ export default {
 
           const genre = this.genresToAddInPlaylist.find((filteredGenre) => filteredGenre.genre === title);
           this.submitTracksToPlaylist(
-            genre.tracks.map((track) => `spotify:track:${track}`),
+            this.formatSpotifyUris(genre.tracks),
             this.userPlaylists.find((userPlaylist) => userPlaylist.id === response.id),
           );
           resolve(true);
@@ -579,8 +579,8 @@ export default {
      * @param isForPlaylistAutomaticallyCreated
      */
     submitTracksToPlaylist(tracks, userPlaylist, isForPlaylistAutomaticallyCreated = false) {
-      console.log('user', userPlaylist)
-      console.log('tracks', tracks)
+      console.log('user', userPlaylist);
+      console.log('tracks', tracks);
       const chunks = [];
       const chunkSize = 100;
       for (let i = 0; i < tracks.length; i += chunkSize) {
@@ -600,7 +600,7 @@ export default {
         if (chunk.length > 0) {
           let handleChunk = chunk;
           if (isForPlaylistAutomaticallyCreated) {
-            handleChunk = chunk.map((c) => `spotify:track:${c}`);
+            handleChunk = this.formatSpotifyUris(chunk);
           }
           this.fetchService
             .post(`playlists/${userPlaylist.id}/tracks?uris=${handleChunk.join(',')}`)
@@ -746,6 +746,9 @@ export default {
         array[i] = array[j];
         array[j] = temp;
       }
+    },
+    formatSpotifyUris(arrayOfUris) {
+      return arrayOfUris.map((arrayOfUri) => `spotify:track:${arrayOfUri}`);
     },
   },
 };
