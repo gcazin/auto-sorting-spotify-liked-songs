@@ -739,6 +739,7 @@ export default {
      /**
      * Push value to be displayed in debug terminal
      * @param value
+     * @param important
      */
     pushInfo(value, important = false) {
       const importantText = important ? `<span class="text-success fw-bold">${value}</span>` : value;
