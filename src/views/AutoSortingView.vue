@@ -339,23 +339,28 @@ export default {
      * @returns {Promise<FlatArray<*[], 1>[]>}
      */
     async getLikedTracks() {
-      const response = await this.fetchService
-        .get(`me/tracks?=limit=${this.numberOfItems}`);
-      const data = await response;
+      const response = await this.fetchService.get(`me/tracks?limit=${this.numberOfItems}`);
       let tracks = [];
-      let offset = 0;
-      for (let i = 0; i < Math.ceil(data.total / this.numberOfItems); i++) {
-        const fetchNextTracks = await this.fetchService
-          .get(`me/tracks?offset=${offset}&limit=${this.numberOfItems}`);
-        const fetchNextTracksData = await fetchNextTracks;
-        if (fetchNextTracksData.total < 50) {
-          offset = fetchNextTracksData.total;
-        } else {
-          offset += 50;
+      tracks.push(response.items);
+      if (response.next) {
+        let nextUrl = response.next;
+        let hasFetchedAllTracks = false;
+        while (!hasFetchedAllTracks) {
+          const fetchNextTracks = await this.fetchService.get(
+            nextUrl.split('/').slice(-2).join('/'),
+          );
+          const fetchNextTracksData = await fetchNextTracks;
+
+          tracks.push(fetchNextTracksData.items);
+
+          if (!fetchNextTracks.next) {
+            hasFetchedAllTracks = true;
+          } else {
+            nextUrl = fetchNextTracks.next;
+          }
         }
-        tracks.push(fetchNextTracksData);
       }
-      tracks = tracks.map((track) => track.items).flat();
+      tracks = tracks.flat();
       return tracks;
     },
 
@@ -364,52 +369,60 @@ export default {
      ** =====================/
      /**
      * Get user tracks style
-     * @returns {Promise<unknown>}
      */
     async getGenres() {
-      return new Promise(async (successCallback) => {
-        const artists = [];
-        for (const likedTrack of this.likedTracks) {
-          for (const artist of likedTrack.track.artists) {
-            const find = artists.find((a) => a.id === artist.id);
-            if (!find) {
-              artists.push({
-                id: artist.id,
-                data: [],
-              });
-            }
+      const chunks = [];
+      const chunkSize = 50;
+      let artists = [];
+      const artistsIds = [...new Set(
+        this.likedTracks
+          .map((likedTrack) => likedTrack.track)
+          .map((track) => track.artists)
+          .flat()
+          .map((artist) => artist.id),
+      )];
 
-            let artistData;
-            let findArtistData = artists.find((a) => a.id === artist.id).data;
-            if (findArtistData.length === 0) {
-              const fetchData = await this.fetchService
-                .get(`artists/${artist.id}`);
-              const data = await fetchData;
-              findArtistData = data;
-              artistData = findArtistData;
-            } else {
-              artistData = artists.find((a) => a.id === artist.id).data;
-            }
-            if (this.formattedData.findIndex((fd) => fd.id === likedTrack.track.id) === -1) {
-              this.formattedData.push({
-                id: likedTrack.track.id,
-                song: likedTrack.track.name,
-                uri: likedTrack.track.uri,
-                genres: artistData.genres,
-                artist: likedTrack.track.artists.map((artist) => ({
-                  name: artist.name,
-                  id: artist.id,
-                })).flat(),
-                external_url: likedTrack.track.external_urls.spotify,
-                album: likedTrack.track.album.name,
-                duration_ms: likedTrack.track.duration_ms,
-              });
-            }
-          }
+      for (let i = 0; i < artistsIds.length; i += chunkSize) {
+        const chunk = [...artistsIds].slice(i, i + chunkSize);
+        chunks.push(chunk);
+      }
+
+      for (const chunk of chunks) {
+        if (chunk.length > 0) {
+          const response = await this.fetchService.get(`artists?ids=${chunk.join(',')}`);
+          const data = await response;
+
+          artists.push(data.artists);
         }
+      }
 
-        return successCallback();
-      });
+      artists = artists.flat();
+      if (artists.length === artistsIds.length) {
+        return new Promise((successCallback) => {
+          this.likedTracks.forEach((likedTrack) => {
+            likedTrack.track.artists.forEach((artist) => {
+              const artistData = artists.find((a) => a.id === artist.id);
+              if (this.formattedData.findIndex((fd) => fd.id === likedTrack.track.id) === -1) {
+                this.formattedData.push({
+                  id: likedTrack.track.id,
+                  song: likedTrack.track.name,
+                  uri: likedTrack.track.uri,
+                  genres: artistData.genres,
+                  artist: likedTrack.track.artists.map((artist) => ({
+                    name: artist.name,
+                    id: artist.id,
+                  })).flat(),
+                  external_url: likedTrack.track.external_urls.spotify,
+                  album: likedTrack.track.album.name,
+                  duration_ms: likedTrack.track.duration_ms,
+                });
+              }
+            });
+          });
+
+          return successCallback();
+        });
+      }
     },
     /**
      * Sorting tracks by genres of musics
