@@ -213,6 +213,7 @@ export default {
       filteredGenres: [],
       genresToAddInPlaylist: [],
       infos: [],
+      consoleUsername: null,
       loading: false,
 
       // Form
@@ -538,7 +539,7 @@ export default {
           description: `[${title}]`,
           public: false,
         }).then((response) => {
-          this.pushInfo('The playlist has been correctly created');
+          this.pushInfo(`Playlist ${response.name} correctly created.`);
 
           this.userPlaylists.push({
             id: response.id,
@@ -600,11 +601,9 @@ export default {
       chunks.forEach((chunk) => {
         // eslint-disable-next-line max-len
         if (this.randomizeTracks) {
-          this.pushInfo(`Randomize ${chunk.length} tracks...`);
           this.shuffleArray(chunk);
         }
         if (chunk.length > 0) {
-          this.pushInfo('Push to playlist created...');
           let handleChunk = chunk;
           if (isForPlaylistAutomaticallyCreated) {
             handleChunk = chunk.map((c) => `spotify:track:${c}`);
@@ -664,7 +663,6 @@ export default {
                 .filter((checkInPlaylist) => !checkInPlaylists.find((c) => checkInPlaylist === c));
 
               if (tracksToBeAdded.length > 0) {
-                this.pushInfo(`Sending ${tracksToBeAdded.length} to playlist ${userPlaylist.name}...`);
                 this.submitTracksToPlaylist(tracksToBeAdded, userPlaylist);
               } else {
                 doneMessage();
@@ -688,34 +686,26 @@ export default {
      */
     autoSortingLikedTracks() {
       this.loading = true;
-      this.pushInfo('Start of the operations...');
-      this.pushInfo('Get credentials...');
       // Get user credentials
       this.getCredentials().then((response) => {
         localStorage.setItem('token', response.access_token);
-        this.pushInfo('Successfully connected!', true);
-        this.pushInfo('Get profile...');
-
         // Get user profile
         this.getProfile().then((profile) => {
           this.me = profile;
-          this.pushInfo('Profile successfully retrieved!', true);
+          this.consoleUsername = this.me.display_name;
           this.pushInfo(`Welcome ${this.me.display_name} !`);
-          this.pushInfo('Get user playlists...');
 
           // Get user playlists
           this.getUserPlaylists().then((userPlaylists) => {
             // Format user playlists
             this.getFormattedUserPlaylists(userPlaylists);
-            this.pushInfo('Playlists successfully retrieved!', true);
-            this.pushInfo('Get your liked tracks...');
+            this.pushInfo('Playlists successfully retrieved!');
 
             // Get user liked tracks
             this.getLikedTracks().then((likedTracks) => {
               this.likedTracks = likedTracks;
               if (this.likedTracks.length > 0) {
                 this.pushInfo(`${this.likedTracks.length} liked tracks found !`, true);
-                this.pushInfo('Get styles of liked tracks...');
 
                 // Get user liked tracks style
                 this.getGenres().then(() => {
@@ -739,11 +729,9 @@ export default {
      /**
      * Push value to be displayed in debug terminal
      * @param value
-     * @param important
      */
-    pushInfo(value, important = false) {
-      const importantText = important ? `<span class="text-success fw-bold">${value}</span>` : value;
-      this.infos.push(`<span class="fw-bold">api@<span class="text-success">spotify</span>:~></span> ${importantText}`);
+    pushInfo(value) {
+      this.infos.push(`<span class="fw-bold">${this.consoleUsername}@<span class="text-success">spotify</span>:~></span> ${value}`);
     },
     /**
      * Used in case of the user has checked the "randomize tracks" buttons
