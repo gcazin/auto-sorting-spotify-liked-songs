@@ -2,7 +2,7 @@
 
 ![Home page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/home.jpg)
 
-# Auto sorting liked songs on Spotify
+# SpotifyLikedTracksSorter
 
 **This small utility allows you to retrieve your latest favorite music, extract the genre and categorize them in the right playlists.**
 
