@@ -517,7 +517,6 @@ export default {
           }
         });
       });
-      filteredGenres = filteredGenres.filter((filteredGenre) => filteredGenre.genres.length);
       this.filteredGenres = filteredGenres;
       const sortByGenre = [];
       filteredGenres.forEach((filteredGenre) => {
