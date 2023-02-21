@@ -1,6 +1,6 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/7963e4b5-269a-481e-a901-537704e8f050/deploy-status)](https://app.netlify.com/sites/auto-sorting-spotify-liked-songs/deploys)
 
-![Home page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/home.jpg)
+![Home page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/home.png)
 
 # SpotifyLikedTracksSorter
 
@@ -38,8 +38,8 @@ npm run lint
 
 ### Form
 
-![Form](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/autosort-page.jpg)
+![Form](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/home.png)
 
 ### Process page
 
-![Process page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/process.jpg)
+![Process page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/process.png)
