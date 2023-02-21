@@ -79,23 +79,31 @@ ___       __       _______       ___           ________      ________      _____
                   <thead>
                   <tr>
                     <th class="text-uppercase" scope="col">Song name</th>
-                    <th class="text-uppercase" scope="row">Album</th>
+                    <th class="text-uppercase" scope="col">Artists</th>
                     <th class="text-uppercase" scope="row">Genres</th>
-                    <th class="text-uppercase" scope="row">Duration</th>
-                    <th scope="col"></th>
+<!--                    <th class="text-uppercase" scope="row">Duration</th>-->
                   </tr>
                   </thead>
                   <tbody>
                   <tr v-for="track in formattedData">
-                    <td class="text-uppercase">
+                    <td class="text-uppercase d-flex flex-column">
                       <a class="text-decoration-none text-success fw-bold" :href="track.external_url">
                         {{ track.song }}
                       </a>
-                      <p class="fs-6 text-muted">{{ track.genres.join(', ') }}</p>
+                      <a :href="track.album.uri" class="block fs-6 text-muted">{{ track.album.name }}</a>
                     </td>
-                    <td>{{ track.album }}</td>
+                    <td>
+                      <a
+                        class="text-decoration-none text-success fw-bold"
+                        v-for="(artist, index) in track.artist"
+                        :key="index"
+                        :href="artist.uri">
+                        {{ artist.name }}
+                        <br>
+                      </a>
+                    </td>
                     <td>{{ track.genres.join(', ')}}</td>
-                    <td>{{ `${new Date(track.duration_ms).getMinutes()}:${new Date(track.duration_ms).getSeconds()}` }}</td>
+<!--                    <td>{{ `${new Date(track.duration_ms).getMinutes()}:${new Date(track.duration_ms).getSeconds()}` }}</td>-->
                   </tr>
                   </tbody>
                 </table>
@@ -480,9 +488,13 @@ export default {
                   artist: likedTrack.track.artists.map((artist) => ({
                     name: artist.name,
                     id: artist.id,
+                    uri: artist.external_urls.spotify,
                   })).flat(),
                   external_url: likedTrack.track.external_urls.spotify,
-                  album: likedTrack.track.album.name,
+                  album: {
+                    name: likedTrack.track.album.name,
+                    uri: likedTrack.track.album.external_urls.spotify,
+                  },
                   duration_ms: likedTrack.track.duration_ms,
                 });
               }
@@ -499,7 +511,7 @@ export default {
      * @param userPlaylists
      */
     sortTracksByGenres(genres, userPlaylists) {
-      let filteredGenres = [];
+      const filteredGenres = [];
       userPlaylists.forEach((userPlaylist) => {
         genres.forEach((genre) => {
           if (genre.includes(userPlaylist.description)) {
