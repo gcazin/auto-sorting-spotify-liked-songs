@@ -50,7 +50,11 @@
             <label class="form-check-label" for="performSubmittingData">Submitting data ?</label>
           </div>
           <div>
-            <Login text="Auto sorting"/>
+            <div class="text-center">
+              <Button size="lg" @click="login()">
+                Login with Spotify
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -61,9 +65,11 @@
 <script>
 import Login from '@/components/Login.vue';
 import Card from '@/components/Card.vue';
+import Button from '@/components/Button.vue';
 
 export default {
   components: {
+    Button,
     Login,
     Card,
   },
@@ -76,9 +82,44 @@ export default {
       showDebug: true,
       performSubmittingData: true,
       performCreatePlaylistAutomatically: false,
-      minimumOfTracksToCreatePlaylistAutomatically: 25,
+      minimumOfTracksToCreatePlaylistAutomatically: 100,
       randomizeTracks: false,
     };
+  },
+  methods: {
+    login() {
+      const redirectUri = new URL(
+        'auto-sorting',
+        window.location.href,
+      );
+      localStorage.setItem('redirect-uri', redirectUri.toString());
+
+      const state = (Math.random() + 1).toString(36).substring(2);
+      const clientId = import.meta.env.VITE_CLIENT_ID;
+      const scopes = [
+        'user-read-private',
+        'user-read-email',
+        'user-library-read',
+        'playlist-read-private',
+        'playlist-modify-public',
+        'playlist-modify-private',
+      ];
+
+      const url = new URL('/authorize', 'https://accounts.spotify.com/');
+      url.searchParams.append('response_type', 'code');
+      url.searchParams.append('client_id', clientId);
+      url.searchParams.append('scope', scopes.join(' '));
+      url.searchParams.append('redirect_uri', redirectUri.toString());
+      url.searchParams.append('state', state);
+
+      localStorage.setItem('parameters', JSON.stringify({
+        randomizeTracks: this.randomizeTracks,
+        performCreatePlaylistAutomatically: this.performCreatePlaylistAutomatically,
+        minimumOfTracksToCreatePlaylistAutomatically: this.minimumOfTracksToCreatePlaylistAutomatically,
+        performSubmittingData: this.performSubmittingData,
+      }));
+      window.location.href = url.toString();
+    },
   },
 };
 </script>
