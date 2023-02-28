@@ -1,12 +1,17 @@
 <template>
-    <div class="text-center">
-      <button class="btn btn-success btn-lg fw-bold" @click="login()">{{ text ?? 'Login with Spotify' }}</button>
-    </div>
+  <div class="text-center">
+    <Button size="lg" @click="login()">
+      {{ text ?? 'Login with Spotify' }}
+    </Button>
+  </div>
 </template>
 
 <script>
+import Button from '@/components/Button.vue';
+
 export default {
   components: {
+    Button,
   },
   props: {
     text: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="col-10 m-auto mt-5">
+  <section class="col-10 m-auto mt-5">
     <h1 class="text-white text-center">
       Let the <span class="text-success">automatic sorting</span> of your music by genre begin !
     </h1>
@@ -14,14 +14,22 @@
       <div class="row no-gutters">
         <div class="col bg-success text-white p-3 rounded-start">
           <p class="h5 fw-bold mb-4">Instructions</p>
-          <p><span class="rounded-circle border px-2 d-inline">1</span> <span class="fw-bold">Create a playlist</span> with the name you want on Spotify.</p>
-          <p><span class="rounded-circle border px-2">2</span> Put in <span class="fw-bold">description</span> the music genres of the playlist (ex: [rap]).
+          <p>
+            <span class="rounded-circle border px-2 d-inline">1</span>
+            <span class="fw-bold">Create a playlist</span> with the name you want on Spotify.
+          </p>
+          <p>
+            <span class="rounded-circle border px-2">2</span>
+            Put in <span class="fw-bold">description</span> the music genres of the playlist (ex: [rap]).
             You can retrieve the genres that appear most often in your playlists by submitting the form and unchecking the 'Submitting data',
             nothing will be added or modified in your playlists.</p>
-          <p><span class="rounded-circle border px-2">3</span> Click on the <span class="fw-bold">auto sorting button</span> and tada!</p>
+          <p>
+            <span class="rounded-circle border px-2">3</span>
+            Click on the <span class="fw-bold">auto sorting button</span> and tada!
+          </p>
         </div>
         <div
-          class="col-8 text-white d-flex flex-column p-3 rounded-end"
+          class="col-12 col-lg-8 text-white d-flex flex-column p-3 rounded-end"
           style="background: #1e1e1e"
         >
           <p class="fw-bold">Let's verify this options !</p>
@@ -47,7 +55,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script>

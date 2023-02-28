@@ -1,96 +1,143 @@
 <template>
   <template v-if="!checkIsDataIsLoaded">
     <!-- Debug information card -->
-    <div class="col-10 m-auto">
-      <h1 class="fw-normal text-white my-4">Retrieving information in progress...</h1>
-      <Card v-if="infos.length > 0">
-        <div class="text-muted mb-5">
-          <pre class="text-white">
-___       __       _______       ___           ________      ________      _____ ______       _______
-|\  \     |\  \    |\  ___ \     |\  \         |\   ____\    |\   __  \    |\   _ \  _   \    |\  ___ \
-\ \  \    \ \  \   \ \   __/|    \ \  \        \ \  \___|    \ \  \|\  \   \ \  \\\__\ \  \   \ \   __/|
-\ \  \  __\ \  \   \ \  \_|/__   \ \  \        \ \  \        \ \  \\\  \   \ \  \\|__| \  \   \ \  \_|/__
-\ \  \|\__\_\  \   \ \  \_|\ \   \ \  \____    \ \  \____    \ \  \\\  \   \ \  \    \ \  \   \ \  \_|\ \
-\ \____________\   \ \_______\   \ \_______\   \ \_______\   \ \_______\   \ \__\    \ \__\   \ \_______\
-\|____________|    \|_______|    \|_______|    \|_______|    \|_______|    \|__|     \|__|    \|_______|
-          </pre>
-          <p>Welcome to auto-sorting-spotify-liked-songs-program !</p>
-          <p>If you have any questions, send a message at czn.guillaume[at]gmail[dot].com.</p>
+    <section class="col-10 m-auto">
+      <template v-if="showFetchError">
+        <h1 class="fw-normal my-4 text-danger">
+          Spotify connection error
+        </h1>
+        <p class="text-white">The most likely error is that the connection has expired.</p>
+        <p class="text-white">Please return to the home page.</p>
+        <Button is-link to="home">Return to home</Button>
+      </template>
+      <template v-else>
+        <Loader class="mt-5 mb-3" :text="progressInfo" />
+        <div class="mx-auto text-center">
+          <Button size="sm" outline borderless @click="showDebug = !showDebug" class="mb-2">show debug ?</Button>
         </div>
-        <p class="text-white" v-html="info.toLowerCase()" v-for="info in infos"></p>
-      </Card>
-    </div>
+        <Card v-if="infos.length > 0 && showDebug">
+          <div class="text-muted mb-4">
+            <p>Welcome to auto-sorting-spotify-liked-songs-program !</p>
+            <p>If you have any questions, send a message at czn.guillaume[at]gmail[dot].com.</p>
+          </div>
+          <p v-for="info in infos" class="text-white" v-html="info.toLowerCase()"></p>
+        </Card>
+      </template>
+    </section>
   </template>
   <template v-else>
-    <main>
-      <div class="d-flex justify-content-center text-white">
-        <ul class="nav nav-pills mb-auto">
-          <li v-for="sidebarTab in sidebarTabs" class="nav-item">
-            <a href="#" @click="selectMenu(sidebarTab.title.toLowerCase())" class="nav-link" :class="{'active': selectedCard === sidebarTab.title.toLowerCase()}" aria-current="page">
-              <ion-icon class="sidebar-icon" :name="`${selectedCard === sidebarTab.title.toLowerCase() ? sidebarTab.icon : `${sidebarTab.icon}-outline`}`"></ion-icon>
-              {{ sidebarTab.title }}
-            </a>
-          </li>
-        </ul>
-      </div>
+    <Teleport to="#profile">
+      <Button size="sm" outline>
+        <img
+          v-if="me.images"
+          width="30"
+          class="rounded-circle align-middle"
+          :src="me.images[0].url"
+          :alt="me.display_name"
+        >
+        {{ me.display_name }}
+      </Button>
+    </Teleport>
 
-      <div style="background: #121212">
-        <div class="main-content mt-5 col-10 mx-auto">
-          <!-- Dashboard -->
-          <!-- Statistics -->
-          <div class="">
-            <div v-if="me">
-              <h3 class="text-white mb-4 text-uppercase">{{ me?.display_name }}'s dashboard</h3>
-              <div class="container-fluid px-0">
-                <div class="row">
-                  <div class="col">
-                    <Card title=" Number of tracks" icon-name="musical-notes-outline">
-                      {{ formattedData.length }}
-                    </Card>
-                  </div>
-                  <div class="col">
-                    <Card title=" Number of playlists" icon-name="library-outline" v-if="genres.length">
-                      {{ genres.length }}
-                    </Card>
-                  </div>
-                  <div class="col">
-                    <Card title=" Genres" icon-name="musical-notes-outline">
-                      {{ genresToAddInPlaylist.length }}
-                    </Card>
-                  </div>
-                </div>
+    <section class="col-10 mx-auto" style="background: #121212">
+      <ul class="nav nav-pills d-block d-lg-flex col-10 col-lg-12 mx-auto text-white">
+        <li v-for="(sidebarTab, index) in sidebarTabs" :key="index" class="nav-item">
+          <a
+            href="#"
+            @click="selectMenu(sidebarTab.title.toLowerCase())"
+            class="nav-link"
+            :class="{'active': selectedCard === sidebarTab.title.toLowerCase()}"
+          >
+            <ion-icon
+              class="sidebar-icon"
+              :name="`${selectedCard === sidebarTab.title.toLowerCase() ? sidebarTab.icon : `${sidebarTab.icon}-outline`}`"
+            ></ion-icon>
+            {{ sidebarTab.title }}
+          </a>
+        </li>
+      </ul>
+
+      <div class="mt-4">
+        <!-- Dashboard -->
+        <!-- Statistics -->
+        <div v-if="me">
+          <div class="container-fluid px-0">
+            <div class="row">
+              <div class="col-12 col-lg">
+                <Card title=" Number of tracks" icon-name="musical-notes-outline">
+                  {{ formattedData.length }}
+                </Card>
               </div>
-
-              <!-- Debug information card -->
-              <Card v-if="selectedCard === 'debug' && infos.length > 0">
-                <p class="text-white" v-html="info" v-for="info in infos"></p>
-              </Card>
+              <div class="col-12 col-lg">
+                <Card
+                  v-if="genres.length"
+                  icon-name="library-outline"
+                  title=" Number of playlists"
+                >
+                  {{ genres.length }}
+                </Card>
+              </div>
+              <div class="col-12 col-lg">
+                <Card
+                  title=" Genres"
+                  icon-name="musical-notes-outline"
+                >
+                  {{ genresToAddInPlaylist.length }}
+                </Card>
+              </div>
             </div>
           </div>
 
-          <!-- Liked tracks card -->
-          <div
-            v-if="selectedCard === 'tracks'"
-            class="row"
-          >
-            <div class="col">
-              <Card title="Liked tracks">
+          <!-- Debug information card -->
+          <Card v-if="selectedCard === 'debug' && infos.length > 0">
+            <p
+              v-for="(info, index) in infos"
+              :key="index"
+              class="text-white"
+              v-html="info.toLowerCase()"
+            ></p>
+          </Card>
+        </div>
+
+        <!-- Liked tracks card -->
+        <div
+          v-if="selectedCard === 'tracks'"
+          class="row"
+        >
+          <div class="col">
+            <Card has-pagination title="Liked tracks">
+              <template #pagination>
+                <Pagination
+                  :per-page="10"
+                  name="likedTracks"
+                  :data="formattedData"
+                  @data="getDataFromPagination"
+                />
+              </template>
+              <div class="table-responsive">
                 <table class="table text-white table-borderless">
                   <thead>
                   <tr>
                     <th class="text-uppercase" scope="col">Song name</th>
                     <th class="text-uppercase" scope="col">Artists</th>
                     <th class="text-uppercase" scope="row">Genres</th>
-<!--                    <th class="text-uppercase" scope="row">Duration</th>-->
                   </tr>
                   </thead>
                   <tbody>
-                  <tr v-for="track in formattedData">
+                  <tr v-for="(track, index) in getPaginationData('likedTracks')" :key="index">
                     <td class="text-uppercase d-flex flex-column">
-                      <a class="text-decoration-none text-success fw-bold" :href="track.external_url">
+                      <a
+                        class="text-decoration-none text-success fw-bold"
+                        :href="track.external_url"
+                      >
                         {{ track.song }}
                       </a>
-                      <a :href="track.album.uri" class="block fs-6 text-muted">{{ track.album.name }}</a>
+                      <a
+                        :href="track.album.uri"
+                        class="block fs-6 text-muted"
+                      >
+                        {{ track.album.name }}
+                      </a>
                     </td>
                     <td>
                       <a
@@ -103,77 +150,112 @@ ___       __       _______       ___           ________      ________      _____
                       </a>
                     </td>
                     <td>{{ track.genres.join(', ')}}</td>
-<!--                    <td>{{ `${new Date(track.duration_ms).getMinutes()}:${new Date(track.duration_ms).getSeconds()}` }}</td>-->
                   </tr>
                   </tbody>
                 </table>
-              </Card>
-            </div>
+              </div>
+            </Card>
           </div>
+        </div>
 
-          <!-- Filtered genres card -->
-          <Card
-            v-if="selectedCard === 'genres'"
-            title="Filtered genres"
-          >
-            <table class="table text-white table-borderless">
-              <thead>
-              <tr>
-                <th class="text-uppercase" scope="col">Genre</th>
-                <th class="text-uppercase text-end" scope="row">Number of items</th>
-                <th scope="col"></th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr v-for="genre in genresToAddInPlaylist">
-                <td class="text-uppercase">
-                  {{genre.genre}}
+        <!-- Filtered genres card -->
+        <Card
+          has-pagination
+          v-if="selectedCard === 'genres'"
+          title="Filtered genres"
+        >
+          <template #pagination>
+            <Pagination
+              :per-page="10"
+              name="genresToAddInPlaylist"
+              :data="genresToAddInPlaylist"
+              @data="getDataFromPagination"
+            />
+          </template>
+          <table class="table text-white table-borderless">
+            <thead>
+            <tr>
+              <th class="text-uppercase" scope="col">Genre</th>
+              <th class="text-uppercase text-end" scope="row">Number of items</th>
+              <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(genre, index) in getPaginationData('genresToAddInPlaylist')" :key="index">
+              <td class="text-uppercase">
+                {{ genre.genre }}
+                <span
+                  v-if="genre.genres.length !== 0"
+                  class="badge rounded-pill bg-dark"
+                  data-bs-toggle="modal"
+                  :data-bs-target="`#${genre.genre}`"
+                >
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                  </span>
+              </td>
+              <td class="text-end">
                   <span
-                    v-if="genre.genres.length !== 0"
                     class="badge rounded-pill bg-dark"
                     data-bs-toggle="modal"
-                    :data-bs-target="`#${genre.genre}`"
+                    :data-bs-target="`#tracks-${genre.genre}`"
                   >
-            <ion-icon name="information-circle-outline"></ion-icon>
-          </span>
-                </td>
-                <td class="text-end">
-                  <span class="badge rounded-pill bg-dark">{{ genre.tracks.length }}</span>
-                </td>
-                <td class="text-end">
-                  <template
-                    v-if="!userPlaylists.map((up) => up.description).includes(`[${genre.genre}]`)"
-                  >
-                    <button
-                      @click="createUserPlaylist(genre.genre)"
-                      class="btn btn-outline-success fw-bold btn-sm">
-                      Add to spotify
-                    </button>
-                  </template>
-                  <template v-else>
-                    <button disabled class="btn btn-outline-secondary fw-bold btn-sm">
-                      Already existing
-                    </button>
-                  </template>
-                </td>
-
-                <Modal
-                  v-if="genre.genres.length !== 0"
-                  :id="genre.genre"
-                  :title="`Associated genres to ${genre.genre}`"
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                    {{ genre.tracks.length }} tracks
+                  </span>
+              </td>
+              <td class="text-end">
+                <template
+                  v-if="!userPlaylists.map((up) => up.description).includes(`[${genre.genre}]`)"
                 >
-                  {{ genre.genres.join(', ') }}
-                </Modal>
-              </tr>
-              </tbody>
-            </table>
-          </Card>
+                  <Button @click="createUserPlaylist(genre.genre)" size="sm" outline borderless>
+                    Add to spotify
+                  </Button>
+                </template>
+                <template v-else>
+                  <Button color="light" size="sm" borderless outline disabled>
+                    Already existing
+                  </Button>
+                </template>
+              </td>
 
-          <!-- Playlists found -->
-          <Card
-            v-if="selectedCard === 'playlists'"
-            title="Founded playlists"
-          >
+              <!-- Associated genres to main genre -->
+              <Modal
+                v-if="genre.genres.length !== 0"
+                :id="genre.genre"
+                :title="`Associated genres to ${genre.genre}`"
+              >
+                {{ genre.genres.join(', ') }}
+              </Modal>
+              <!-- Tracks inside this genres -->
+              <Modal
+                v-show="genre.tracks.length !== 0"
+                :id="`tracks-${genre.genre}`"
+                :title="`Associated tracks to ${genre.genre}`"
+              >
+                <div v-for="(track, index) in genre.tracks" :key="index">
+                  {{ getTrackSongFromAssociatedGenres(track) }}
+                  ({{ getTrackArtistsFromAssociatedGenres(track) }})
+                </div>
+              </Modal>
+            </tr>
+            </tbody>
+          </table>
+        </Card>
+
+        <!-- Playlists found -->
+        <Card
+          has-pagination
+          v-if="selectedCard === 'playlists'"
+          title="Founded playlists"
+        >
+          <template #pagination>
+            <Pagination
+              name="playlists"
+              :data="genres"
+              @data="getDataFromPagination"
+            />
+          </template>
+          <div class="table-responsive">
             <table class="table table-borderless text-white">
               <thead>
               <tr>
@@ -186,7 +268,8 @@ ___       __       _______       ___           ________      ________      _____
               <tbody>
               <tr
                 style="vertical-align: middle"
-                v-for="genre in genres.sort((a, b) => b.tracks.length - a.tracks.length)"
+                v-for="(genre, index) in getPaginationData('playlists')"
+                :key="index"
               >
                 <td>
                   <template v-if="genre.image">
@@ -198,12 +281,16 @@ ___       __       _______       ___           ________      ________      _____
                     <span class="text-muted">No cover available</span>
                   </template>
                 </td>
-                <td><a :href="genre.uri" class="text-success text-decoration-none fw-bold">{{ genre.name }}</a></td>
+                <td>
+                  <a :href="genre.uri" class="text-success text-decoration-none fw-bold">
+                    {{ genre.name }}
+                  </a>
+                </td>
                 <td>[{{ genre.genre }}]</td>
                 <td>
           <span
-            class="badge rounded-pill bg-success"
             v-if="'numberOfItemsAdded' in userPlaylists.find((userPlaylist) => userPlaylist.description === `[${genre.genre}]`)"
+            class="badge rounded-pill bg-success"
           >
               {{ userPlaylists.find((userPlaylist) => userPlaylist.description === `[${genre.genre}]`).numberOfItemsAdded }}
           </span>
@@ -214,22 +301,31 @@ ___       __       _______       ___           ________      ________      _____
               </tr>
               </tbody>
             </table>
-          </Card>
-        </div>
+          </div>
+        </Card>
       </div>
-    </main>
+    </section>
   </template>
 </template>
 
 <script>
-import { toRef } from 'vue';
 import Login from '@/components/Login.vue';
 import Card from '@/components/Card.vue';
 import Modal from '@/components/Modal.vue';
+import Button from '@/components/Button.vue';
+import Pagination from '@/components/Pagination.vue';
+import Loader from '@/components/Loader.vue';
 
 export default {
   name: 'AutoSortingView',
-  components: { Modal, Card, Login },
+  components: {
+    Loader,
+    Pagination,
+    Button,
+    Modal,
+    Card,
+    Login,
+  },
   data() {
     return {
       me: null,
@@ -243,18 +339,20 @@ export default {
       infos: [],
       consoleUsername: null,
       textButton: 'Let the magic happen !',
-      autogeneratedTitle: 'Auto-generated by autosort-spotify-liked-songs',
+      autogeneratedTitle: 'Auto-generated by SpotifyLikedTracksSorter',
       loading: false,
+      progressInfo: null,
 
       // Form
       numberOfItems: 50,
       showGenres: true,
       showLikedTracks: false,
-      showDebug: true,
+      showDebug: false,
       performSubmittingData: true,
       performCreatePlaylistAutomatically: false,
       minimumOfTracksToCreatePlaylistAutomatically: 10,
       randomizeTracks: false,
+      showFetchError: false,
 
       // View
       selectedCard: 'playlists',
@@ -274,6 +372,20 @@ export default {
         {
           icon: 'bug',
           title: 'Debug',
+        },
+      ],
+      pagination: [
+        {
+          name: 'genresToAddInPlaylist',
+          data: null,
+        },
+        {
+          name: 'likedTracks',
+          data: null,
+        },
+        {
+          name: 'playlists',
+          data: null,
         },
       ],
     };
@@ -318,9 +430,13 @@ export default {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
         }).then((response) => {
-          response.json().then((data) => {
-            successCallback(data);
-          });
+          if (response.ok) {
+            response.json().then((data) => {
+              successCallback(data);
+            });
+          } else {
+            this.showFetchError = true;
+          }
         });
       });
     },
@@ -330,8 +446,7 @@ export default {
      */
     async getProfile() {
       const response = await this.fetchService.get('me');
-      const data = await response;
-      return data;
+      return await response;
     },
 
     /** ======================
@@ -343,8 +458,7 @@ export default {
      */
     async getUserPlaylists() {
       const response = await this.fetchService.get('me/playlists');
-      const data = await response;
-      return data;
+      return await response;
     },
     /**
      * Get user playlist tracks
@@ -404,7 +518,7 @@ export default {
           this.pushInfo(`Found ${userPlaylist.name} with ${userPlaylist.tracks.length} tracks inside !`);
         }
 
-        return successCallback();
+        successCallback();
       });
     },
 
@@ -690,6 +804,7 @@ export default {
         );
       }
       chunks.forEach((chunk) => {
+        this.pushProgressInfo('send data to spotify');
         if (this.randomizeTracks) {
           this.shuffleArray(chunk);
         }
@@ -719,10 +834,12 @@ export default {
       const genres = [...new Set(this.formattedData.map((data) => data.genres).flat())];
 
       // Generate the list of genres which can be added to Spotify
+      this.pushProgressInfo('generates the list of the genres');
       this.generateListOfGenresThatCanBeAdded(genres);
 
       // Create automatically the playlist if the user wants
       if (this.performCreatePlaylistAutomatically) {
+        this.pushProgressInfo('create playlists automatically');
         this.createPlaylistsAutomatically();
       }
 
@@ -731,6 +848,7 @@ export default {
         ...userPlaylist,
         description: userPlaylist.description.replace(/[\\[\]']+/g, ''),
       }));
+      this.pushProgressInfo('sort tracks by genres');
       this.sortTracksByGenres(genres, userPlaylists);
 
       // Done message
@@ -738,7 +856,9 @@ export default {
       const doneMessage = () => {
         counter += 1;
         if (userPlaylists.length === counter) {
+          this.pushProgressInfo('done');
           this.pushInfo('All operations has been performed.');
+          this.loading = false;
         }
       };
 
@@ -762,6 +882,7 @@ export default {
             doneMessage();
           }
         } else {
+          this.loading = false;
           this.pushInfo('All the music has already been sorted, or already exists in the corresponding playlists, no action has been performed.');
         }
       });
@@ -782,6 +903,7 @@ export default {
         localStorage.setItem('token', response.access_token);
         // this.textButton += Math.ceil(numberOfSteps);
         // Get user profile
+        this.pushProgressInfo('get profile');
         this.getProfile().then((profile) => {
           /* numberOfSteps = 100 / 5;
           this.textButton += Math.ceil(numberOfSteps); */
@@ -789,24 +911,27 @@ export default {
           this.consoleUsername = this.me.display_name;
           this.pushInfo(`Welcome ${this.me.display_name} !`);
 
+          this.pushProgressInfo('get user playlists');
           // Get user playlists
           this.getUserPlaylists().then((userPlaylists) => {
             // Format user playlists
             this.pushInfo('Getting playlists and tracks associated...');
+            this.pushProgressInfo('format user playlists');
             this.getFormattedUserPlaylists(userPlaylists).then(() => {
               this.pushInfo('Playlists successfully retrieved!');
 
               // Get user liked tracks
+              this.pushProgressInfo('get liked tracks');
               this.getLikedTracks().then((likedTracks) => {
                 this.likedTracks = likedTracks;
                 if (this.likedTracks.length > 0) {
                   this.pushInfo(`${this.likedTracks.length} liked tracks found !`, true);
 
+                  this.pushProgressInfo('get genres');
                   // Get user liked tracks style
                   this.getGenres().then(() => {
                     // And we finally send data to the Spotify API
                     this.sendDataToSpotifyApi();
-                    this.loading = false;
                   });
                 } else {
                   this.pushInfo('No tracks liked found, try to add your first liked song.');
@@ -834,7 +959,15 @@ export default {
      * @param value
      */
     pushInfo(value) {
+      this.progressInfo = `${value}... `;
       this.infos.push(`<span class="fw-bold">${this.consoleUsername}@<span class="text-success">spotify</span>:~></span> ${value}`);
+    },
+    /**
+     * Push value to be displayed for the loader
+     * @param value
+     */
+    pushProgressInfo(value) {
+      this.progressInfo = `${value}... `;
     },
     /**
      * Used in case of the user has checked the "randomize tracks" buttons
@@ -848,8 +981,39 @@ export default {
         array[j] = temp;
       }
     },
+    /**
+     * Format the url to match the one required by the Spotify API
+     * @param arrayOfUris
+     * @returns {*}
+     */
     formatSpotifyUris(arrayOfUris) {
       return arrayOfUris.map((arrayOfUri) => `spotify:track:${arrayOfUri}`);
+    },
+    /**
+     * Retrieves the song associated with the ID
+     * @param track
+     * @returns {*}
+     */
+    getTrackSongFromAssociatedGenres(track) {
+      return this.formattedData.find((data) => data.id === track)?.song;
+    },
+    /**
+     * Retrieves the artists associated with the ID
+     * @param track
+     * @returns {*}
+     */
+    getTrackArtistsFromAssociatedGenres(track) {
+      return this.formattedData.length && this.formattedData
+        .find((data) => data.id === track)
+        ?.artist
+        .map((artist) => artist.name)
+        .join(', ');
+    },
+    getPaginationData(name) {
+      return this.pagination.find((pagination) => pagination.name === name).data;
+    },
+    getDataFromPagination(n) {
+      this.pagination.find((pagination) => pagination.name === n.name).data = n.data;
     },
   },
 };

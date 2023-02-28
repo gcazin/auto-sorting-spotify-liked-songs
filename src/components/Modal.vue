@@ -1,6 +1,12 @@
 <template>
   <div class="modal fade" :id="id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div
+      class="modal-dialog"
+      :class="{
+        'modal-lg': size === 'lg',
+        'modal-xl': size === 'xl',
+      }"
+    >
       <div class="modal-content bg-dark">
         <div class="modal-header border-0">
           <h5 class="modal-title" id="exampleModalLabel">{{ title }}</h5>
@@ -26,6 +32,10 @@ export default {
     },
     title: {
       type: String,
+    },
+    size: {
+      type: String,
+      default: '',
     },
   },
 };
