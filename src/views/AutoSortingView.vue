@@ -65,7 +65,7 @@
             <div class="row">
               <div class="col-12 col-lg">
                 <Card title=" Number of tracks" icon-name="musical-notes-outline">
-                  {{ formattedData.length }}
+                  {{ formattedLikedTracks.length }}
                 </Card>
               </div>
               <div class="col-12 col-lg">
@@ -87,82 +87,14 @@
               </div>
             </div>
           </div>
-
-          <!-- Debug information card -->
-          <Card v-if="selectedCard === 'debug' && infos.length > 0">
-            <p
-              v-for="(info, index) in infos"
-              :key="index"
-              class="text-white"
-              v-html="info.toLowerCase()"
-            ></p>
-          </Card>
         </div>
 
-        <!-- Liked tracks card -->
-        <div
-          v-if="selectedCard === 'tracks'"
-          class="row"
-        >
-          <div class="col">
-            <Card has-pagination title="Liked tracks">
-              <template #pagination>
-                <Pagination
-                  :per-page="10"
-                  name="likedTracks"
-                  :data="formattedData"
-                  @data="getDataFromPagination"
-                />
-              </template>
-              <div class="table-responsive">
-                <table class="table text-white table-borderless">
-                  <thead>
-                  <tr>
-                    <th class="text-uppercase" scope="col">Song name</th>
-                    <th class="text-uppercase" scope="col">Artists</th>
-                    <th class="text-uppercase" scope="row">Genres</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr v-for="(track, index) in getPaginationData('likedTracks')" :key="index">
-                    <td class="text-uppercase d-flex flex-column">
-                      <a
-                        class="text-decoration-none text-success fw-bold"
-                        :href="track.external_url"
-                      >
-                        {{ track.song }}
-                      </a>
-                      <a
-                        :href="track.album.uri"
-                        class="block fs-6 text-muted"
-                      >
-                        {{ track.album.name }}
-                      </a>
-                    </td>
-                    <td>
-                      <a
-                        class="text-decoration-none text-success fw-bold"
-                        v-for="(artist, index) in track.artist"
-                        :key="index"
-                        :href="artist.uri">
-                        {{ artist.name }}
-                        <br>
-                      </a>
-                    </td>
-                    <td>{{ track.genres.join(', ')}}</td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
-        </div>
-
+        <!-- tabs begin -->
         <!-- Filtered genres card -->
         <Card
           has-pagination
           v-if="selectedCard === 'genres'"
-          title="Filtered genres"
+          title="Genres"
         >
           <template #pagination>
             <Pagination
@@ -205,7 +137,7 @@
               </td>
               <td class="text-end">
                 <template
-                  v-if="!userPlaylists.map((up) => up.description).includes(`[${genre.genre}]`)"
+                  v-if="!userPlaylists.find((userPlaylist) => userPlaylist.description.includes(`[${genre.genre}]`))"
                 >
                   <Button @click="createUserPlaylist(genre.genre)" size="sm" outline borderless>
                     Add to spotify
@@ -246,7 +178,7 @@
         <Card
           has-pagination
           v-if="selectedCard === 'playlists'"
-          title="Founded playlists"
+          title="Playlists"
         >
           <template #pagination>
             <Pagination
@@ -303,6 +235,150 @@
             </table>
           </div>
         </Card>
+
+        <!-- Artists card -->
+        <div
+          v-if="selectedCard === 'artists'"
+          class="row"
+        >
+          <div class="col">
+            <Card has-pagination title="Artists" :key="componentKey">
+              <template #pagination>
+                <Pagination
+                  :per-page="10"
+                  name="artists"
+                  :data="artistsToAddInPlaylist"
+                  @data="getDataFromPagination"
+                />
+              </template>
+              <div class="table-responsive">
+                <table class="table text-white table-borderless">
+                  <thead>
+                  <tr>
+                    <th scope="col"></th>
+                    <th class="text-uppercase" scope="row">Artist name</th>
+                    <th class="text-uppercase" scope="row">Nb of tracks</th>
+                    <th scope="col"></th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr
+                    style="vertical-align: middle;"
+                    v-for="(artist, index) in getPaginationData('artists')"
+                    :key="index">
+                    <td>
+                      <a target="_blank" :href="artist.external_urls.spotify">
+                        <img height="80" :src="artist.images.slice(-1)[0]?.url" :alt="artist.name">
+                      </a>
+                    </td>
+                    <td class="text-uppercase d-flex flex-column">
+                      <a
+                        class="text-decoration-none text-success fw-bold"
+                        :href="artist.external_urls.spotify"
+                      >
+                        {{ artist.name }}
+                      </a>
+                    </td>
+                    <td>
+                      {{ artist.tracks.length }}
+                    </td>
+                    <td class="text-end">
+                      <template
+                        v-if="!userPlaylists.find((up) => up.description.includes(`[${artist.name.toLowerCase()}]`))"
+                      >
+                        <Button
+                          @click="createUserPlaylist(artist.name, 'artists')"
+                          size="sm"
+                          outline
+                          borderless
+                        >
+                          Add to spotify
+                        </Button>
+                      </template>
+                      <template v-else>
+                        <Button color="light" size="sm" borderless outline disabled>
+                          Already existing
+                        </Button>
+                      </template>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        <!-- Liked tracks card -->
+        <div
+          v-if="selectedCard === 'tracks'"
+          class="row"
+        >
+          <div class="col">
+            <Card has-pagination title="Liked tracks">
+              <template #pagination>
+                <Pagination
+                  :per-page="10"
+                  name="likedTracks"
+                  :data="formattedLikedTracks"
+                  @data="getDataFromPagination"
+                />
+              </template>
+              <div class="table-responsive">
+                <table class="table text-white table-borderless">
+                  <thead>
+                  <tr>
+                    <th class="text-uppercase" scope="col">Song name</th>
+                    <th class="text-uppercase" scope="col">Artists</th>
+                    <th class="text-uppercase" scope="row">Genres</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr v-for="(track, index) in getPaginationData('likedTracks')" :key="index">
+                    <td class="text-uppercase d-flex flex-column">
+                      <a
+                        class="text-decoration-none text-success fw-bold"
+                        :href="track.external_url"
+                      >
+                        {{ track.song }}
+                      </a>
+                      <a
+                        :href="track.album.uri"
+                        class="block fs-6 text-muted"
+                      >
+                        {{ track.album.name }}
+                      </a>
+                    </td>
+                    <td>
+                      <a
+                        class="text-decoration-none text-success fw-bold"
+                        v-for="(artist, index) in track.artist"
+                        :key="index"
+                        :href="artist.uri">
+                        {{ artist.name }}
+                        <br>
+                      </a>
+                    </td>
+                    <td>{{ track.genres.join(', ')}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        <!-- Debug information card -->
+        <Card v-if="selectedCard === 'debug' && infos.length > 0">
+          <p
+            v-for="(info, index) in infos"
+            :key="index"
+            class="text-white"
+            v-html="info.toLowerCase()"
+          ></p>
+        </Card>
+
+        <!-- end tabs -->
       </div>
     </section>
   </template>
@@ -331,16 +407,19 @@ export default {
       me: null,
       likedTracks: [],
       artists: [],
+      artistsFromLikedTracks: [],
       genres: [],
       userPlaylists: [],
-      formattedData: [],
+      formattedLikedTracks: [],
       filteredGenres: [],
       genresToAddInPlaylist: [],
+      artistsToAddInPlaylist: [],
       infos: [],
       consoleUsername: null,
       textButton: 'Let the magic happen !',
       loading: false,
       progressInfo: null,
+      componentKey: 0,
 
       // Form
       numberOfItems: 50,
@@ -353,15 +432,19 @@ export default {
       performSubmittingData: null,
 
       // View
-      selectedCard: 'playlists',
+      selectedCard: 'genres',
       sidebarTabs: [
+        {
+          icon: 'library',
+          title: 'Genres',
+        },
         {
           icon: 'albums',
           title: 'Playlists',
         },
         {
-          icon: 'library',
-          title: 'Genres',
+          icon: 'people',
+          title: 'Artists',
         },
         {
           icon: 'musical-notes',
@@ -385,13 +468,17 @@ export default {
           name: 'playlists',
           data: null,
         },
+        {
+          name: 'artists',
+          data: null,
+        },
       ],
     };
   },
 
   computed: {
     checkIsDataIsLoaded() {
-      return this.formattedData.length
+      return this.formattedLikedTracks.length
         && this.genres.length
         && this.genresToAddInPlaylist.length
         && this.likedTracks.length;
@@ -564,7 +651,7 @@ export default {
     async getGenres() {
       const chunks = [];
       const chunkSize = 50;
-      let artists = [];
+      const artists = [];
       const artistsIds = [...new Set(
         this.likedTracks
           .map((likedTrack) => likedTrack.track)
@@ -587,14 +674,14 @@ export default {
         }
       }
 
-      artists = artists.flat();
-      if (artists.length === artistsIds.length) {
+      this.artistsFromLikedTracks = artists.flat();
+      if (this.artistsFromLikedTracks.length === artistsIds.length) {
         return new Promise((successCallback) => {
           this.likedTracks.forEach((likedTrack) => {
             likedTrack.track.artists.forEach((artist) => {
-              const artistData = artists.find((a) => a.id === artist.id);
-              if (this.formattedData.findIndex((fd) => fd.id === likedTrack.track.id) === -1) {
-                this.formattedData.push({
+              const artistData = this.artistsFromLikedTracks.find((a) => a.id === artist.id);
+              if (this.formattedLikedTracks.findIndex((fd) => fd.id === likedTrack.track.id) === -1) {
+                this.formattedLikedTracks.push({
                   id: likedTrack.track.id,
                   song: likedTrack.track.name,
                   uri: likedTrack.track.uri,
@@ -609,7 +696,6 @@ export default {
                     name: likedTrack.track.album.name,
                     uri: likedTrack.track.album.external_urls.spotify,
                   },
-                  duration_ms: likedTrack.track.duration_ms,
                 });
               }
             });
@@ -650,7 +736,7 @@ export default {
           ...filteredGenre,
           tracks: [],
         });
-        this.formattedData.forEach((g) => {
+        this.formattedLikedTracks.forEach((g) => {
           if (g.genres.length > 0) {
             g.genres.forEach((t) => {
               const findTracks = sortByGenre
@@ -700,7 +786,7 @@ export default {
         });
       });
       // Add tracks to corresponding genre
-      this.formattedData.forEach((data) => {
+      this.formattedLikedTracks.forEach((data) => {
         data.genres.forEach((fg) => {
           if (fg.length > 0) {
             this.genresToAddInPlaylist.forEach((genre) => {
@@ -720,6 +806,25 @@ export default {
       this.genresToAddInPlaylist = this.genresToAddInPlaylist
         .sort((a, b) => b.tracks.length - a.tracks.length);
     },
+    /**
+     * Generate a list of artists that can be added
+     */
+    generateListOfArtistsThatCanBeAdded() {
+      this.formattedLikedTracks.forEach((data) => {
+        data.artist.forEach((d) => {
+          const findArtistFromLikedTracks = this.artistsFromLikedTracks
+            .find((artist) => artist.id === d.id);
+          if (!('tracks' in findArtistFromLikedTracks)) {
+            findArtistFromLikedTracks.tracks = [];
+          } else if (!findArtistFromLikedTracks.tracks.includes(data.id)) {
+            findArtistFromLikedTracks.tracks.push(data.id);
+          }
+        });
+      });
+
+      this.artistsToAddInPlaylist = this.artistsFromLikedTracks
+        .sort((a, b) => b.tracks.length - a.tracks.length);
+    },
 
     /** ======================
      * HANDLE API SUBMITTING
@@ -727,13 +832,13 @@ export default {
     /**
      * Create a user playlist
      * @param title
+     * @param type (genres, or tracks)
      */
-    createUserPlaylist(title) {
+    createUserPlaylist(title, type = 'genres') {
       return new Promise((resolve) => {
-        const formattedTitle = `${title[0].toUpperCase()}${title.slice(1)}`;
         this.fetchService.post(`users/${this.me.id}/playlists`, {
-          name: formattedTitle,
-          description: `[${title}], an automatically playlist sorter located at ${window.location.origin}`,
+          name: this.formatTitleForPlaylist(title),
+          description: `[${title.toLowerCase()}], an automatically playlist sorter located at ${window.location.origin}`,
           public: false,
         }).then((response) => {
           this.pushInfo(`Playlist ${response.name} correctly created.`);
@@ -751,11 +856,23 @@ export default {
             automaticallyCreated: true,
           });
 
-          const genre = this.genresToAddInPlaylist.find((filteredGenre) => filteredGenre.genre === title);
-          this.submitTracksToPlaylist(
-            this.formatSpotifyUris(genre.tracks),
-            this.userPlaylists.find((userPlaylist) => userPlaylist.id === response.id),
-          );
+          if (type === 'genres') {
+            const genre = this.genresToAddInPlaylist
+              .find((filteredGenre) => filteredGenre.genre === title);
+            this.submitTracksToPlaylist(
+              this.formatSpotifyUris(genre.tracks),
+              this.userPlaylists.find((userPlaylist) => userPlaylist.id === response.id),
+            );
+          }
+          if (type === 'artists') {
+            const artist = this.artistsToAddInPlaylist
+              .find((filteredArtist) => filteredArtist.name === title);
+            this.submitTracksToPlaylist(
+              this.formatSpotifyUris(artist.tracks),
+              this.userPlaylists.find((userPlaylist) => userPlaylist.id === response.id),
+            );
+          }
+          // this.generateListOfArtistsThatCanBeAdded();
           resolve(true);
         });
       });
@@ -831,11 +948,15 @@ export default {
      * Main function to send the data to the Spotify API
      */
     sendDataToSpotifyApi() {
-      const genres = [...new Set(this.formattedData.map((data) => data.genres).flat())];
+      const genres = [...new Set(this.formattedLikedTracks.map((data) => data.genres).flat())];
 
       // Generate the list of genres which can be added to Spotify
       this.pushProgressInfo('generates the list of the genres');
       this.generateListOfGenresThatCanBeAdded(genres);
+
+      this.pushProgressInfo('generates the list of the artists');
+      // Generate the list of artists which can be added to Spotify
+      this.generateListOfArtistsThatCanBeAdded();
 
       // Create automatically the playlist if the user wants
       if (this.performCreatePlaylistAutomatically) {
@@ -990,12 +1111,20 @@ export default {
       return arrayOfUris.map((arrayOfUri) => `spotify:track:${arrayOfUri}`);
     },
     /**
+     * Format url for Spotify title playlist
+     * @param title
+     * @returns {string}
+     */
+    formatTitleForPlaylist(title) {
+      return `${title[0].toUpperCase()}${title.slice(1)}`;
+    },
+    /**
      * Retrieves the song associated with the ID
      * @param track
      * @returns {*}
      */
     getTrackSongFromAssociatedGenres(track) {
-      return this.formattedData.find((data) => data.id === track)?.song;
+      return this.formattedLikedTracks.find((data) => data.id === track)?.song;
     },
     /**
      * Retrieves the artists associated with the ID
@@ -1003,7 +1132,7 @@ export default {
      * @returns {*}
      */
     getTrackArtistsFromAssociatedGenres(track) {
-      return this.formattedData.length && this.formattedData
+      return this.formattedLikedTracks.length && this.formattedLikedTracks
         .find((data) => data.id === track)
         ?.artist
         .map((artist) => artist.name)
