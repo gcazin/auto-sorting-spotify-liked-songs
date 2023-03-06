@@ -268,7 +268,12 @@
                     :key="index">
                     <td>
                       <a target="_blank" :href="artist.external_urls.spotify">
-                        <img height="80" :src="artist.images.slice(-1)[0]?.url" :alt="artist.name">
+                        <img
+                          v-if="artist.images.length"
+                          height="80"
+                          :src="artist.images.slice(-1)[0].url"
+                          :alt="artist.name"
+                        >
                       </a>
                     </td>
                     <td class="text-uppercase d-flex flex-column">
