@@ -15,12 +15,12 @@
         <div class="mx-auto text-center">
           <Button size="sm" outline borderless @click="showDebug = !showDebug" class="mb-2">show debug ?</Button>
         </div>
-        <Card v-if="infos.length > 0 && showDebug">
+        <Card v-if="debugInfos.length > 0 && showDebug">
           <div class="text-muted mb-4">
             <p>Welcome to auto-sorting-spotify-liked-songs-program !</p>
             <p>If you have any questions, send a message at czn.guillaume[at]gmail[dot].com.</p>
           </div>
-          <p v-for="info in infos" class="text-white" v-html="info.toLowerCase()"></p>
+          <p v-for="info in debugInfos" class="text-white" v-html="info.toLowerCase()"></p>
         </Card>
       </template>
     </section>
@@ -242,7 +242,7 @@
           class="row"
         >
           <div class="col">
-            <Card has-pagination title="Artists" :key="componentKey">
+            <Card has-pagination title="Artists">
               <template #pagination>
                 <Pagination
                   :per-page="10"
@@ -374,9 +374,9 @@
         </div>
 
         <!-- Debug information card -->
-        <Card v-if="selectedCard === 'debug' && infos.length > 0">
+        <Card v-if="selectedCard === 'debug' && debugInfos.length > 0">
           <p
-            v-for="(info, index) in infos"
+            v-for="(info, index) in debugInfos"
             :key="index"
             class="text-white"
             v-html="info.toLowerCase()"
@@ -409,23 +409,25 @@ export default {
   },
   data() {
     return {
+      // Profile
       me: null,
-      likedTracks: [],
-      artists: [],
-      artistsFromLikedTracks: [],
-      genres: [],
       userPlaylists: [],
+      // Liked tracks
+      likedTracks: [],
       formattedLikedTracks: [],
+      // Genres
+      genres: [],
       filteredGenres: [],
       genresToAddInPlaylist: [],
+      // Artists
+      artistsFromLikedTracks: [],
       artistsToAddInPlaylist: [],
-      infos: [],
-      consoleUsername: null,
-      textButton: 'Let the magic happen !',
+      // State
       loading: false,
+      // Debug
+      debugInfos: [],
+      consoleUsername: null,
       progressInfo: null,
-      componentKey: 0,
-
       // Form
       numberOfItems: 50,
       showDebug: false,
@@ -435,7 +437,6 @@ export default {
       performCreatePlaylistAutomatically: null,
       minimumOfTracksToCreatePlaylistAutomatically: null,
       performSubmittingData: null,
-
       // View
       selectedCard: 'genres',
       sidebarTabs: [
@@ -460,6 +461,7 @@ export default {
           title: 'Debug',
         },
       ],
+      // Pagination
       pagination: [
         {
           name: 'genresToAddInPlaylist',
@@ -926,7 +928,6 @@ export default {
         );
       }
       chunks.forEach((chunk) => {
-        this.pushProgressInfo('send data to spotify');
         if (this.randomizeTracks) {
           this.shuffleArray(chunk);
         }
@@ -956,16 +957,13 @@ export default {
       const genres = [...new Set(this.formattedLikedTracks.map((data) => data.genres).flat())];
 
       // Generate the list of genres which can be added to Spotify
-      this.pushProgressInfo('generates the list of the genres');
       this.generateListOfGenresThatCanBeAdded(genres);
 
-      this.pushProgressInfo('generates the list of the artists');
       // Generate the list of artists which can be added to Spotify
       this.generateListOfArtistsThatCanBeAdded();
 
       // Create automatically the playlist if the user wants
       if (this.performCreatePlaylistAutomatically) {
-        this.pushProgressInfo('create playlists automatically');
         this.createPlaylistsAutomatically();
       }
 
@@ -974,7 +972,6 @@ export default {
         ...userPlaylist,
         description: userPlaylist.description.replace(/[\\[\]']+/g, ''),
       }));
-      this.pushProgressInfo('sort tracks by genres');
       this.sortTracksByGenres(genres, userPlaylists);
 
       // Done message
@@ -982,7 +979,6 @@ export default {
       const doneMessage = () => {
         counter += 1;
         if (userPlaylists.length === counter) {
-          this.pushProgressInfo('done');
           this.pushInfo('All operations has been performed.');
           this.loading = false;
         }
@@ -1022,38 +1018,27 @@ export default {
      */
     autoSortingLikedTracks() {
       this.loading = true;
-      this.textButton = 'In progress...';
-      // let numberOfSteps = 100 / 6;
       // Get user credentials
       this.getCredentials().then((response) => {
         localStorage.setItem('token', response.access_token);
-        // this.textButton += Math.ceil(numberOfSteps);
         // Get user profile
-        this.pushProgressInfo('get profile');
         this.getProfile().then((profile) => {
-          /* numberOfSteps = 100 / 5;
-          this.textButton += Math.ceil(numberOfSteps); */
           this.me = profile;
           this.consoleUsername = this.me.display_name;
           this.pushInfo(`Welcome ${this.me.display_name} !`);
-
-          this.pushProgressInfo('get user playlists');
           // Get user playlists
           this.getUserPlaylists().then((userPlaylists) => {
             // Format user playlists
             this.pushInfo('Getting playlists and tracks associated...');
-            this.pushProgressInfo('format user playlists');
             this.getFormattedUserPlaylists(userPlaylists).then(() => {
               this.pushInfo('Playlists successfully retrieved!');
 
               // Get user liked tracks
-              this.pushProgressInfo('get liked tracks');
               this.getLikedTracks().then((likedTracks) => {
                 this.likedTracks = likedTracks;
                 if (this.likedTracks.length > 0) {
                   this.pushInfo(`${this.likedTracks.length} liked tracks found !`, true);
 
-                  this.pushProgressInfo('get genres');
                   // Get user liked tracks style
                   this.getGenres().then(() => {
                     // And we finally send data to the Spotify API
@@ -1086,14 +1071,7 @@ export default {
      */
     pushInfo(value) {
       this.progressInfo = `${value}... `;
-      this.infos.push(`<span class="fw-bold">${this.consoleUsername}@<span class="text-success">spotify</span>:~></span> ${value}`);
-    },
-    /**
-     * Push value to be displayed for the loader
-     * @param value
-     */
-    pushProgressInfo(value) {
-      this.progressInfo = `${value}... `;
+      this.debugInfos.push(`<span class="fw-bold">${this.consoleUsername}@<span class="text-success">spotify</span>:~></span> ${value}`);
     },
     /**
      * Used in case of the user has checked the "randomize tracks" buttons
