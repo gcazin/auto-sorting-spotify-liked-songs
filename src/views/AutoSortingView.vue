@@ -11,80 +11,103 @@
         <Button is-link to="home">Return to home</Button>
       </template>
       <template v-else>
-        <Loader class="mt-5 mb-3" :text="progressInfo" />
-        <div class="mx-auto text-center">
-          <Button size="sm" outline borderless @click="showDebug = !showDebug" class="mb-2">show debug ?</Button>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <Loader class="mt-5 mb-3" :text="progressInfo" />
+          <!--          <div class="mx-auto text-center">
+                      <Button size="sm" outline @click="showDebug = !showDebug" class="mb-2">
+                        show debug ?
+                      </Button>
+                    </div>
+                    <Card v-if="debugInfos.length > 0 && showDebug">
+                      <div class="text-muted mb-4">
+                        <p>Welcome to auto-sorting-spotify-liked-songs-program !</p>
+                        <p>If you have any questions, send a message at czn.guillaume[at]gmail[dot].com.</p>
+                      </div>
+                      <p v-for="info in debugInfos" class="text-white" v-html="info.toLowerCase()"></p>
+                    </Card>-->
         </div>
-        <Card v-if="debugInfos.length > 0 && showDebug">
-          <div class="text-muted mb-4">
-            <p>Welcome to auto-sorting-spotify-liked-songs-program !</p>
-            <p>If you have any questions, send a message at czn.guillaume[at]gmail[dot].com.</p>
-          </div>
-          <p v-for="info in debugInfos" class="text-white" v-html="info.toLowerCase()"></p>
-        </Card>
       </template>
     </section>
   </template>
   <template v-else>
-    <Teleport to="#profile">
-      <Button size="sm" outline>
-        <img
-          v-if="me.images"
-          width="30"
-          class="rounded-circle align-middle"
-          :src="me.images[0].url"
-          :alt="me.display_name"
-        >
-        {{ me.display_name }}
-      </Button>
-    </Teleport>
+    <Container>
+      <Teleport to="#menu">
+        <div class="text-sm font-medium text-center text-gray-500 border-t border-gray-700 dark:text-gray-400 dark:border-gray-700">
+          <ul class="flex flex-wrap -mb-px">
+            <MenuItem
+              v-for="(sidebarTab, index) in sidebarTabs"
+              :key="index"
+              :text="sidebarTab.title"
+              @click="selectMenu(sidebarTab.title.toLowerCase())"
+              :active="selectedCard === sidebarTab.title.toLowerCase()"
+            />
+          </ul>
+        </div>
+      </Teleport>
 
-    <section class="col-10 mx-auto" style="background: #121212">
-      <ul class="nav nav-pills d-block d-lg-flex col-10 col-lg-12 mx-auto text-white">
-        <li v-for="(sidebarTab, index) in sidebarTabs" :key="index" class="nav-item">
-          <a
-            href="#"
-            @click="selectMenu(sidebarTab.title.toLowerCase())"
-            class="nav-link"
-            :class="{'active': selectedCard === sidebarTab.title.toLowerCase()}"
-          >
-            <ion-icon
-              class="sidebar-icon"
-              :name="`${selectedCard === sidebarTab.title.toLowerCase() ? sidebarTab.icon : `${sidebarTab.icon}-outline`}`"
-            ></ion-icon>
-            {{ sidebarTab.title }}
-          </a>
-        </li>
-      </ul>
-
+      <div class="mt-4">
+        <Card>
+          <div class="flex space-x-8">
+            <div class="flex items-center">
+              <img class="rounded-full h-20" v-if="me.images" :src="me.images[0].url" />
+            </div>
+            <div class="flex flex-col justify-center">
+              <Text>Welcome,</Text>
+              <p class="text-2xl text-primary">
+                {{ me.display_name }}
+                <!--                <span
+                                  v-show="me.product === 'premium'"
+                                  class="bg-yellow-700 text-yellow-300 align-middle text-xs font-medium px-1 py-0.5 rounded-full">
+                                  Premium
+                                </span>-->
+              </p>
+              <div class="flex items-center space-x-4 text-sm mt-4">
+                <Text class="text-sm mt-0">Selected options :</Text>
+                <div class="flex items-center space-x-4 text-white">
+                  <p v-if="randomizeTracks">
+                    <ion-icon class="align-middle text-primary" name="checkmark-done-outline"></ion-icon>
+                    Randomize tracks
+                  </p>
+                  <p v-if="performCreatePlaylistAutomatically">
+                    <ion-icon class="align-middle text-primary" name="checkmark-done-outline"></ion-icon>
+                    Create playlist automatically
+                  </p>
+                  <p v-if="performSubmittingData">
+                    <ion-icon class="align-middle text-primary" name="checkmark-done-outline"></ion-icon>
+                    Submit data
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
       <div class="mt-4">
         <!-- Dashboard -->
         <!-- Statistics -->
         <div v-if="me">
-          <div class="container-fluid px-0">
-            <div class="row">
-              <div class="col-12 col-lg">
-                <Card title=" Number of tracks" icon-name="musical-notes-outline">
-                  {{ formattedLikedTracks.length }}
-                </Card>
-              </div>
-              <div class="col-12 col-lg">
-                <Card
-                  v-if="genres.length"
-                  icon-name="library-outline"
-                  title=" Number of playlists"
-                >
-                  {{ genres.length }}
-                </Card>
-              </div>
-              <div class="col-12 col-lg">
-                <Card
-                  title=" Genres"
-                  icon-name="musical-notes-outline"
-                >
-                  {{ genresToAddInPlaylist.length }}
-                </Card>
-              </div>
+          <div class="flex space-x-4 mb-4">
+            <div class="flex-1">
+              <Card title=" Number of tracks" icon-name="musical-notes-outline">
+                {{ formattedLikedTracks.length }}
+              </Card>
+            </div>
+            <div class="flex-1">
+              <Card
+                v-if="genres.length"
+                icon-name="library-outline"
+                title=" Number of playlists"
+              >
+                {{ genres.length }}
+              </Card>
+            </div>
+            <div class="flex-1">
+              <Card
+                title=" Genres"
+                icon-name="albums-outline"
+              >
+                {{ genresToAddInPlaylist.length }}
+              </Card>
             </div>
           </div>
         </div>
@@ -99,22 +122,30 @@
           <template #pagination>
             <Pagination
               :per-page="10"
-              name="genresToAddInPlaylist"
+              name="genres"
               :data="genresToAddInPlaylist"
-              @data="getDataFromPagination"
+              @data="setDataFromPagination"
             />
           </template>
-          <table class="table text-white table-borderless">
+          <div class="pt-4">
+            <div class="relative">
+              <input type="text" id="small_outlined" class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+              <label for="small_outlined" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Small outlined</label>
+            </div>
+          </div>
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead>
             <tr>
-              <th class="text-uppercase" scope="col">Genre</th>
-              <th class="text-uppercase text-end" scope="row">Number of items</th>
-              <th scope="col"></th>
+              <th scope="col" class="py-4">Name</th>
+              <th scope="col" class="text-right py-4">
+                Number of associated musics
+              </th>
+              <th scope="col" class="text-right py-4"></th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(genre, index) in getPaginationData('genresToAddInPlaylist')" :key="index">
-              <td class="text-uppercase">
+            <tr class="text-base" v-for="(genre, index) in getPaginationData('genres')" :key="index">
+              <td class="uppercase text-white pb-4">
                 {{ genre.genre }}
                 <span
                   v-if="genre.genres.length !== 0"
@@ -122,53 +153,57 @@
                   data-bs-toggle="modal"
                   :data-bs-target="`#${genre.genre}`"
                 >
-                    <ion-icon name="information-circle-outline"></ion-icon>
+<!--                    <ion-icon name="information-circle-outline"></ion-icon>-->
                   </span>
               </td>
-              <td class="text-end">
+              <td class="text-end pb-4">
                   <span
-                    class="badge rounded-pill bg-dark"
+                    class="badge rounded-pill"
                     data-bs-toggle="modal"
                     :data-bs-target="`#tracks-${genre.genre}`"
                   >
-                    <ion-icon name="information-circle-outline"></ion-icon>
-                    {{ genre.tracks.length }} tracks
+<!--                    <ion-icon name="information-circle-outline"></ion-icon>-->
+                    <span class="text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full bg-green-900 text-green-300">
+                      {{ genre.tracks.length }}
+                    </span>
+
                   </span>
               </td>
-              <td class="text-end">
+              <td class="space-x-1 flex justify-end items-center pb-4">
                 <template
-                  v-if="!userPlaylists.find((userPlaylist) => userPlaylist.description.includes(`[${genre.genre}]`))"
+                  v-if="!findPlaylistWithDescription(genre.genre)"
                 >
-                  <Button @click="createUserPlaylist(genre.genre)" size="sm" outline borderless>
+                  <Button
+                    @click="createUserPlaylist(genre.genre)"
+                    size="sm"
+                    color="primary"
+                    icon="add"
+                  >
                     Add to spotify
                   </Button>
                 </template>
-                <template v-else>
-                  <Button color="light" size="sm" borderless outline disabled>
-                    Already existing
-                  </Button>
-                </template>
+                <Dropdown />
               </td>
 
-              <!-- Associated genres to main genre -->
-              <Modal
-                v-if="genre.genres.length !== 0"
-                :id="genre.genre"
-                :title="`Associated genres to ${genre.genre}`"
-              >
-                {{ genre.genres.join(', ') }}
-              </Modal>
-              <!-- Tracks inside this genres -->
-              <Modal
-                v-show="genre.tracks.length !== 0"
-                :id="`tracks-${genre.genre}`"
-                :title="`Associated tracks to ${genre.genre}`"
-              >
-                <div v-for="(track, index) in genre.tracks" :key="index">
-                  {{ getTrackSongFromAssociatedGenres(track) }}
-                  ({{ getTrackArtistsFromAssociatedGenres(track) }})
-                </div>
-              </Modal>
+              <!--              &lt;!&ndash; Associated genres to main genre &ndash;&gt;
+                            <Modal
+                              v-if="genre.genres.length !== 0"
+                              :id="genre.genre"
+                              :title="`Associated genres to ${genre.genre}`"
+                            >
+                              {{ genre.genres.join(', ') }}
+                            </Modal>
+                            &lt;!&ndash; Tracks inside this genres &ndash;&gt;
+                            <Modal
+                              v-show="genre.tracks.length !== 0"
+                              :id="`tracks-${genre.genre}`"
+                              :title="`Associated tracks to ${genre.genre}`"
+                            >
+                              <div v-for="(track, index) in genre.tracks" :key="index">
+                                {{ getTrackSongFromAssociatedGenres(track) }}
+                                ({{ getTrackArtistsFromAssociatedGenres(track) }})
+                              </div>
+                            </Modal>-->
             </tr>
             </tbody>
           </table>
@@ -184,7 +219,7 @@
             <Pagination
               name="playlists"
               :data="genres"
-              @data="getDataFromPagination"
+              @data="setDataFromPagination"
             />
           </template>
           <div class="table-responsive">
@@ -221,10 +256,10 @@
                 <td>[{{ genre.genre }}]</td>
                 <td>
           <span
-            v-if="'numberOfItemsAdded' in userPlaylists.find((userPlaylist) => userPlaylist.description === `[${genre.genre}]`)"
+            v-if="'numberOfItemsAdded' in findPlaylistWithDescription(genre.genre)"
             class="badge rounded-pill bg-success"
           >
-              {{ userPlaylists.find((userPlaylist) => userPlaylist.description === `[${genre.genre}]`).numberOfItemsAdded }}
+              {{ findPlaylistWithDescription(genre.genre).numberOfItemsAdded }}
           </span>
                   <span class="badge rounded-pill bg-dark" v-else>
               0
@@ -248,7 +283,7 @@
                   :per-page="10"
                   name="artists"
                   :data="artistsToAddInPlaylist"
-                  @data="getDataFromPagination"
+                  @data="setDataFromPagination"
                 />
               </template>
               <div class="table-responsive">
@@ -289,7 +324,7 @@
                     </td>
                     <td class="text-end">
                       <template
-                        v-if="!userPlaylists.find((up) => up.description.includes(`[${artist.name.toLowerCase()}]`))"
+                        v-if="!findPlaylistWithDescription(artist.name.toLowerCase())"
                       >
                         <Button
                           @click="createUserPlaylist(artist.name, 'artists')"
@@ -326,7 +361,7 @@
                   :per-page="10"
                   name="likedTracks"
                   :data="formattedLikedTracks"
-                  @data="getDataFromPagination"
+                  @data="setDataFromPagination"
                 />
               </template>
               <div class="table-responsive">
@@ -385,7 +420,7 @@
 
         <!-- end tabs -->
       </div>
-    </section>
+    </Container>
   </template>
 </template>
 
@@ -396,10 +431,18 @@ import Modal from '@/components/Modal.vue';
 import Button from '@/components/Button.vue';
 import Pagination from '@/components/Pagination.vue';
 import Loader from '@/components/Loader.vue';
+import MenuItem from '@/components/MenuItem.vue';
+import Container from '@/components/Container.vue';
+import Text from '@/components/Text.vue';
+import Dropdown from "@/components/Dropdown.vue";
 
 export default {
   name: 'AutoSortingView',
   components: {
+    Dropdown,
+    Text,
+    Container,
+    MenuItem,
     Loader,
     Pagination,
     Button,
@@ -464,7 +507,7 @@ export default {
       // Pagination
       pagination: [
         {
-          name: 'genresToAddInPlaylist',
+          name: 'genres',
           data: null,
         },
         {
@@ -610,7 +653,8 @@ export default {
 
         for (const userPlaylist of this.userPlaylists) {
           userPlaylist.tracks = await this.getPlaylistTracks(userPlaylist);
-          this.pushInfo(`Found ${userPlaylist.name} with ${userPlaylist.tracks.length} tracks inside !`);
+          const percent = (this.userPlaylists.filter((userPlaylist) => 'tracks' in userPlaylist && userPlaylist.tracks.length > 0).length * 100) / this.userPlaylists.length;
+          this.pushInfo(`${this.userPlaylists.length} playlists found... ${Math.ceil(percent)}%`);
         }
         successCallback();
       });
@@ -1063,6 +1107,25 @@ export default {
     },
 
     /** ======================
+     * PAGINATION
+     ** ===================* */
+    /**
+     * Get the data from the pagination
+     * @param name
+     * @returns {null|*}
+     */
+    getPaginationData(name) {
+      return this.pagination.find((pagination) => pagination.name === name).data;
+    },
+    /**
+     * Set the data from the pagination
+     * @param n
+     */
+    setDataFromPagination(n) {
+      this.pagination.find((pagination) => pagination.name === n.name).data = n.data;
+    },
+
+    /** ======================
      * HELPERS
      ** ===================* */
     /**
@@ -1121,11 +1184,13 @@ export default {
         .map((artist) => artist.name)
         .join(', ');
     },
-    getPaginationData(name) {
-      return this.pagination.find((pagination) => pagination.name === name).data;
-    },
-    getDataFromPagination(n) {
-      this.pagination.find((pagination) => pagination.name === n.name).data = n.data;
+    /**
+     * Find the playlist associated with the given description
+     * @param data
+     * @returns {*}
+     */
+    findPlaylistWithDescription(data) {
+      return this.userPlaylists.find((userPlaylist) => userPlaylist.description.includes(`[${data}]`));
     },
   },
 };

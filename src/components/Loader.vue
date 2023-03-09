@@ -1,44 +1,31 @@
 <template>
   <div class="loader">
     <div class="loader-bars mx-auto">
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
+      <span v-for="n in numberOfBars" :key="n"></span>
     </div>
-    <div class="loader-text text-center mt-3 text-uppercase fs-5">
-      <div class="d-flex justify-content-center align-items-center mx-auto">
-        <div class="spinner-border text-success" role="status"></div>
-        <div class="ms-2">
-          {{ text }}
-        </div>
-      </div>
+    <div class="text-center mt-8 uppercase">
+      <Text>{{ text }}</Text>
     </div>
   </div>
 </template>
 
-<script>
-/**
+<script>/**
  * @see https://codepen.io/MyXoToD/pen/nqjjNN
  */
+import Text from '@/components/Text.vue';
 
 export default {
   name: 'Loader',
+  components: { Text },
   props: {
     text: {
       type: String,
     },
+  },
+  data() {
+    return {
+      numberOfBars: 15,
+    };
   },
 };
 </script>
@@ -53,7 +40,7 @@ export default {
 }
 .loader .loader-bars span {
   display: block;
-  background: #ccc;
+  background: var(--primary);
   width: 7px;
   height: 10%;
   border-radius: 14px;
@@ -62,7 +49,7 @@ export default {
   margin-top: 25%;
 }
 .loader .loader-bars span:last-child {
-  margin-right: 0px;
+  margin-right: 0;
 }
 .loader .loader-bars span:nth-child(1) {
   animation: load 2.5s 1.4s infinite linear;

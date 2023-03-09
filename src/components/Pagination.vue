@@ -1,23 +1,23 @@
 <template>
   <Button
     :disabled="findPagination(name)?.currentPage === 0"
-    class="rounded-circle"
+    class="rounded-full"
     outline
     icon="chevron-back"
-    style="min-width: auto"
     size="sm"
+    color="primary"
     @click="changePage(findPagination(name)?.currentPage - 1, name)"
   >
   </Button>
-  <span class="badge badge-success">
+  <span class="text-white mx-4 text-sm">
     {{ findPagination(name)?.currentPage + 1 }} / {{ findPagination(name)?.chunks?.length }}
   </span>
   <Button
     :disabled="findPagination(name)?.currentPage + 1 === findPagination(name)?.chunks?.length"
-    class="rounded-circle"
+    class="rounded-full"
     icon="chevron-forward"
-    style="min-width: auto"
     size="sm"
+    color="primary"
     outline
     @click="changePage(findPagination(name)?.currentPage + 1, name)"
   ></Button>

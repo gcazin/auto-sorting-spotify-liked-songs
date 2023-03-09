@@ -2,15 +2,15 @@
 
 ![Home page](https://raw.githubusercontent.com/gcazin/auto-sort-spotify-liked-songs/main/public/images/home.png)
 
-# SpotifyLikedTracksSorter
+# 🎵 SpotifyLikedTracksSorter
 
 **This small utility allows you to retrieve your latest favorite music, extract the genre and categorize them in the right playlists.**
 
-## Setup environment variables
+## 📦 Installation
 
 Rename `.env.example` to `.env` and put your credentials inside the appropriate environment variables
 
-## Project Setup
+### Project Setup
 
 ```sh
 npm install
@@ -34,7 +34,7 @@ npm run build
 npm run lint
 ```
 
-## Usage
+## 📚 Usage
 
 ### Form
 

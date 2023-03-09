@@ -1,19 +1,20 @@
 <template>
   <button
     v-if="!isLink"
+    class="btn"
     :class="property"
     type="button"
     :disabled="disabled"
   >
     <template v-if="icon">
       <ion-icon
-        class="text-2xl align-middle bg-blue-500 p-2 rounded-full text-white"
+        class="text-inherit align-middle px-1"
         :name="`${icon}-outline`"
       ></ion-icon>
     </template>
     <slot></slot>
   </button>
-  <router-link v-else :class="property" :to="{ name: to }" :disabled="disabled">
+  <router-link v-else class="btn" :class="property" :to="{ name: to }" :disabled="disabled">
     <slot></slot>
   </router-link>
 </template>
@@ -60,11 +61,11 @@ export default {
   computed: {
     property() {
       return {
-        'btn fw-bold': true,
         [`btn-${this.size}`]: true,
         [`btn-${this.color}`]: this.color && !this.outline,
         [`btn-outline-${this.color}`]: this.color && this.outline,
-        'border-0': this.borderless,
+        'border-none hover:border-2 border-primary': this.borderless,
+        'btn-disabled': this.disabled,
       };
     },
   },

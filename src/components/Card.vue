@@ -1,39 +1,38 @@
 <template>
-  <div class="card mb-4 shadow">
+  <div class="px-5 py-3 bg-[#161616] rounded-lg shadow">
     <div class="card-header" v-if="hasHeader">
       <slot name="header"></slot>
     </div>
-    <div class="card-body">
-      <div class="container-fluid px-0">
-        <div class="row">
-          <div class="col">
-            <h5 class="card-title text-white">
-              <span class="fs-5" v-if="iconName">
-                <ion-icon
-                  class="bg-success rounded align-middle text-white p-2"
-                  :name="iconName"
-                ></ion-icon>
-              </span>
-              <span class="fs-6 text-muted">{{ title }}</span>
-            </h5>
-          </div>
-          <div v-if="hasPagination" class="col d-flex align-items-center justify-content-end">
-            <slot name="pagination"></slot>
-          </div>
-        </div>
+    <div :class="{'flex space-x-4': iconName}">
+      <div
+        class="flex items-center text-3xl bg-primary/10 text-primary rounded-full px-3"
+        v-if="iconName"
+      >
+        <ion-icon :name="iconName"></ion-icon>
       </div>
-      <div class="card-text">
-        <div class="d-flex align-items-center gap-3 py-2" v-if="iconName">
-          <div class="text-white d-flex align-items-center fs-2">
+      <div
+        class="flex flex-col justify-between"
+        :class="{
+          'flex-row!': iconName,
+        }"
+      >
+        <div
+          class="flex"
+          :class="{'justify-between items-center': hasPagination}"
+        >
+          <p class="text text-white uppercase">{{ title }}</p>
+        </div>
+        <div v-if="iconName">
+          <div class="text-primary font-semibold text-3xl">
             <slot></slot>
           </div>
         </div>
         <slot v-else></slot>
       </div>
     </div>
-    <div class="card-footer" v-if="hasFooter">
-      <slot name="footer"></slot>
-    </div>
+  </div>
+  <div v-if="hasPagination" class="text-center my-2">
+    <slot name="pagination"></slot>
   </div>
 </template>
 

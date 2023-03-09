@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn {
+    @apply px-5 py-2.5 text-base font-medium text-center text-white rounded-3xl focus:ring-4 focus:outline-none
+}
+.btn-xs,
+.btn-sm {
+    @apply px-3 px-2;
+}
+.btn-xs {
+    @apply text-xs;
+}
+.btn-sm {
+    @apply text-sm;
+}
+.btn-lg {
+    @apply px-5 py-3;
+}
+.btn-xl {
+    @apply px-6 py-3.5;
+}
+.btn-primary {
+    @apply bg-primary hover:bg-primary-dark focus:ring-primary/30;
+}
+.btn-secondary {
+    @apply bg-slate-500 hover:bg-slate-700 focus:ring-slate-300;
+}
+.btn-outline-primary {
+    @apply border-2 border-primary/50 text-primary focus:ring-primary;
+}
+.btn-outline-secondary {
+    @apply border-2 border-slate-500 text-slate-300 focus:ring-slate-700;
+}
+.btn-danger {
+    @apply bg-red-500;
+}
+.btn-warning {
+    @apply bg-orange-500;
+}
+.btn-light {
+    @apply bg-white text-black;
+}
+.btn-dark {
+    @apply bg-black text-white focus:ring-black/50;
+}
+.btn-disabled {
+    @apply cursor-not-allowed text-gray-700 border-gray-700;
+}
