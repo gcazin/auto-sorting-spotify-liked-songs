@@ -3,12 +3,20 @@
     <!-- Debug information card -->
     <section class="col-10 m-auto">
       <template v-if="showFetchError">
-        <h1 class="fw-normal my-4 text-danger">
-          Spotify connection error
-        </h1>
-        <p class="text-white">The most likely error is that the connection has expired.</p>
-        <p class="text-white">Please return to the home page.</p>
-        <Button is-link to="home">Return to home</Button>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div class="flex flex-col space-y-4">
+            <h1 class="text-7xl text-red-500 text-center">
+              <ion-icon name="cloud-offline-outline"></ion-icon>
+            </h1>
+            <div class="text-xl">
+              <p class="text-white">The most likely error is that the connection has expired.</p>
+              <p class="text-white">Please return to the home page.</p>
+            </div>
+            <div class="mx-auto pt-4">
+              <Button size="lg" is-link to="home">Return to home</Button>
+            </div>
+          </div>
+        </div>
       </template>
       <template v-else>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -116,9 +124,16 @@
         <!-- Filtered genres card -->
         <Card
           has-pagination
+          has-search
           v-if="selectedCard === 'genres'"
           title="Genres"
         >
+          <template #search>
+            <div class="relative z-0 w-full group">
+              <input type="text" name="search" id="search" class="block bg-transparent py-2.5 px-0 w-full text-sm text-gray-900 border-0 border-b-2 appearance-none text-white border-gray-600 focus:border-primary focus:outline-none focus:ring-0 focus:border-primary peer" placeholder=" " required />
+              <label for="search" class="peer-focus:font-medium absolute text-sm text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Search</label>
+            </div>
+          </template>
           <template #pagination>
             <Pagination
               :per-page="10"
@@ -127,86 +142,34 @@
               @data="setDataFromPagination"
             />
           </template>
-          <div class="pt-4">
-            <div class="relative">
-              <input type="text" id="small_outlined" class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
-              <label for="small_outlined" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Small outlined</label>
-            </div>
-          </div>
-          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead>
-            <tr>
-              <th scope="col" class="py-4">Name</th>
-              <th scope="col" class="text-right py-4">
-                Number of associated musics
-              </th>
-              <th scope="col" class="text-right py-4"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr class="text-base" v-for="(genre, index) in getPaginationData('genres')" :key="index">
-              <td class="uppercase text-white pb-4">
-                {{ genre.genre }}
-                <span
-                  v-if="genre.genres.length !== 0"
-                  class="badge rounded-pill bg-dark"
-                  data-bs-toggle="modal"
-                  :data-bs-target="`#${genre.genre}`"
+          <List
+            :properties="list.genres"
+            :data="getPaginationData('genres')"
+            has-actions
+          >
+            <template #tracks.length="{ item }">
+              <span
+                class="text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full bg-green-900 text-green-300"
+              >
+                {{ item.tracks.length }}
+              </span>
+            </template>
+            <template #actions="{ item }">
+              <template
+                v-if="!findPlaylistWithDescription(item.genre)"
+              >
+                <Button
+                  @click="createUserPlaylist(item.genre)"
+                  size="sm"
+                  color="primary"
+                  icon="add"
                 >
-<!--                    <ion-icon name="information-circle-outline"></ion-icon>-->
-                  </span>
-              </td>
-              <td class="text-end pb-4">
-                  <span
-                    class="badge rounded-pill"
-                    data-bs-toggle="modal"
-                    :data-bs-target="`#tracks-${genre.genre}`"
-                  >
-<!--                    <ion-icon name="information-circle-outline"></ion-icon>-->
-                    <span class="text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full bg-green-900 text-green-300">
-                      {{ genre.tracks.length }}
-                    </span>
-
-                  </span>
-              </td>
-              <td class="space-x-1 flex justify-end items-center pb-4">
-                <template
-                  v-if="!findPlaylistWithDescription(genre.genre)"
-                >
-                  <Button
-                    @click="createUserPlaylist(genre.genre)"
-                    size="sm"
-                    color="primary"
-                    icon="add"
-                  >
-                    Add to spotify
-                  </Button>
-                </template>
-                <Dropdown />
-              </td>
-
-              <!--              &lt;!&ndash; Associated genres to main genre &ndash;&gt;
-                            <Modal
-                              v-if="genre.genres.length !== 0"
-                              :id="genre.genre"
-                              :title="`Associated genres to ${genre.genre}`"
-                            >
-                              {{ genre.genres.join(', ') }}
-                            </Modal>
-                            &lt;!&ndash; Tracks inside this genres &ndash;&gt;
-                            <Modal
-                              v-show="genre.tracks.length !== 0"
-                              :id="`tracks-${genre.genre}`"
-                              :title="`Associated tracks to ${genre.genre}`"
-                            >
-                              <div v-for="(track, index) in genre.tracks" :key="index">
-                                {{ getTrackSongFromAssociatedGenres(track) }}
-                                ({{ getTrackArtistsFromAssociatedGenres(track) }})
-                              </div>
-                            </Modal>-->
-            </tr>
-            </tbody>
-          </table>
+                  Add to spotify
+                </Button>
+              </template>
+              <Dropdown />
+            </template>
+          </List>
         </Card>
 
         <!-- Playlists found -->
@@ -222,53 +185,42 @@
               @data="setDataFromPagination"
             />
           </template>
-          <div class="table-responsive">
-            <table class="table table-borderless text-white">
-              <thead>
-              <tr>
-                <th scope="col"></th>
-                <th class="text-uppercase" scope="col">Playlist name</th>
-                <th class="text-uppercase" scope="col">Description</th>
-                <th class="text-uppercase" scope="col">Number of items added</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr
-                style="vertical-align: middle"
-                v-for="(genre, index) in getPaginationData('playlists')"
-                :key="index"
-              >
-                <td>
-                  <template v-if="genre.image">
-                    <a :href="genre.uri" class="text-decoration-none">
-                      <img :src="genre.image" height="50" :alt="`${genre.name}'s cover`">
-                    </a>
-                  </template>
-                  <template v-else>
-                    <span class="text-muted">No cover available</span>
-                  </template>
-                </td>
-                <td>
-                  <a :href="genre.uri" class="text-success text-decoration-none fw-bold">
-                    {{ genre.name }}
-                  </a>
-                </td>
-                <td>[{{ genre.genre }}]</td>
-                <td>
-          <span
-            v-if="'numberOfItemsAdded' in findPlaylistWithDescription(genre.genre)"
-            class="badge rounded-pill bg-success"
+          <List
+            :properties="list.playlists"
+            :data="getPaginationData('playlists')"
+            has-actions
           >
-              {{ findPlaylistWithDescription(genre.genre).numberOfItemsAdded }}
-          </span>
-                  <span class="badge rounded-pill bg-dark" v-else>
-              0
-            </span>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
+            <template #cover="{ item }">
+              <template v-if="item.image">
+                <a :href="item.uri" class="text-decoration-none">
+                  <img :src="item.image" class="w-24" :alt="`${item.name}'s cover`">
+                </a>
+              </template>
+              <template v-else>
+                <span class="text-muted">No cover available</span>
+              </template>
+            </template>
+            <template #name="{ item }">
+              <a :href="item.uri" class="text-success text-decoration-none fw-bold">
+                {{ item.name }}
+              </a>
+            </template>
+            <template #actions="{ item }">
+              <template
+                v-if="!findPlaylistWithDescription(item.genre)"
+              >
+                <Button
+                  @click="createUserPlaylist(item.genre)"
+                  size="sm"
+                  color="primary"
+                  icon="add"
+                >
+                  Add to spotify
+                </Button>
+              </template>
+              <Dropdown />
+            </template>
+          </List>
         </Card>
 
         <!-- Artists card -->
@@ -425,6 +377,7 @@
 </template>
 
 <script>
+import { toast } from 'vue3-toastify';
 import Login from '@/components/Login.vue';
 import Card from '@/components/Card.vue';
 import Modal from '@/components/Modal.vue';
@@ -434,11 +387,14 @@ import Loader from '@/components/Loader.vue';
 import MenuItem from '@/components/MenuItem.vue';
 import Container from '@/components/Container.vue';
 import Text from '@/components/Text.vue';
-import Dropdown from "@/components/Dropdown.vue";
+import Dropdown from '@/components/Dropdown.vue';
+import List from '@/components/List.vue';
+import 'vue3-toastify/dist/index.css';
 
 export default {
   name: 'AutoSortingView',
   components: {
+    List,
     Dropdown,
     Text,
     Container,
@@ -504,6 +460,38 @@ export default {
           title: 'Debug',
         },
       ],
+      // List
+      list: {
+        genres: [
+          {
+            name: 'Name',
+            property: 'genre',
+          },
+          {
+            name: 'Number of associated musics',
+            property: 'tracks.length',
+            align: 'right',
+          },
+        ],
+        playlists: [
+          {
+            name: '',
+            property: 'cover',
+          },
+          {
+            name: 'Playlist name',
+            property: 'name',
+          },
+          {
+            name: 'Description',
+            property: 'genre',
+          },
+          {
+            name: 'Number of items added',
+            property: 'genre',
+          },
+        ],
+      },
       // Pagination
       pagination: [
         {
@@ -826,15 +814,13 @@ export default {
           });
         }
         // Add split genre (ex: [french, rap])
-        genre.split(' ').forEach((e) => {
-          if (!this.genresToAddInPlaylist.find((filteredGenre) => filteredGenre.genre === e)) {
-            this.genresToAddInPlaylist.push({
-              genre: e,
-              genres: [],
-              tracks: [],
-            });
-          }
-        });
+        if (!this.genresToAddInPlaylist.find((filteredGenre) => filteredGenre.genre === genre)) {
+          this.genresToAddInPlaylist.push({
+            genre,
+            genres: [],
+            tracks: [],
+          });
+        }
       });
       // Add tracks to corresponding genre
       this.formattedLikedTracks.forEach((data) => {
@@ -923,7 +909,15 @@ export default {
               this.userPlaylists.find((userPlaylist) => userPlaylist.id === response.id),
             );
           }
-          // this.generateListOfArtistsThatCanBeAdded();
+
+          toast.success(
+            `The ${this.formatTitleForPlaylist(title)} playlist has been created`,
+            {
+              position: 'bottom-right',
+              theme: 'dark',
+            },
+          );
+
           resolve(true);
         });
       });

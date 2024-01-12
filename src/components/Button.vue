@@ -30,7 +30,7 @@ export default {
     },
     color: {
       type: String,
-      default: 'success',
+      default: 'primary',
     },
     outline: {
       type: Boolean,

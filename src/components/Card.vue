@@ -21,6 +21,14 @@
           :class="{'justify-between items-center': hasPagination}"
         >
           <p class="text text-white uppercase">{{ title }}</p>
+          <div class="flex items-center space-x-2">
+            <div v-if="hasSearch">
+              <slot name="search"></slot>
+            </div>
+            <div v-if="hasPagination">
+              <slot name="pagination"></slot>
+            </div>
+          </div>
         </div>
         <div v-if="iconName">
           <div class="text-primary font-semibold text-3xl">
@@ -30,9 +38,6 @@
         <slot v-else></slot>
       </div>
     </div>
-  </div>
-  <div v-if="hasPagination" class="text-center my-2">
-    <slot name="pagination"></slot>
   </div>
 </template>
 
@@ -55,6 +60,10 @@ export default {
       type: String,
     },
     hasPagination: {
+      type: Boolean,
+      default: false,
+    },
+    hasSearch: {
       type: Boolean,
       default: false,
     },
